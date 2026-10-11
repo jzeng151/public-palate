@@ -77,3 +77,35 @@ test('provider failure stays visible after the analysis finishes and when a cach
   await act(async()=>root.render(null));await render();
   assert.equal(visibleError(),true,'cached results must retain visible provider errors');
 });
+
+test('new provider tabs filter their own star tiers and evidence-backed summaries',async t=>{
+  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost'});
+  const previous=new Map<string,PropertyDescriptor|undefined>();
+  for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,IS_REACT_ACT_ENVIRONMENT:true})){
+    previous.set(key,Object.getOwnPropertyDescriptor(globalThis,key));
+    Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});
+  }
+  const container=document.getElementById('root')!,root=createRoot(container);
+  t.after(async()=>{await act(async()=>root.unmount());dom.window.close();for(const [key,value] of previous){if(value)Object.defineProperty(globalThis,key,value);else Reflect.deleteProperty(globalThis,key);}});
+  const common={author:'Fixture diner',date:'2019-01-01',sourceUrl:'https://www.opentable.com/r/fixture'};
+  const report={engine:'gemini',collectedAt:'2026-10-11T00:00:00.000Z',platforms:[],sources:[],reviews:[
+    {...common,id:'ot-low',platform:'OpenTable',rating:2,text:'Synthetic low OpenTable review'},
+    {...common,id:'ot-high',platform:'OpenTable',rating:5,text:'Synthetic high OpenTable review'},
+    {...common,id:'ta-high',platform:'Tripadvisor',rating:5,text:'Synthetic Tripadvisor review',sourceUrl:'https://www.tripadvisor.com/Restaurant_Review-g1-d2-Reviews-Fixture.html'}
+  ],summaries:[{platform:'OpenTable',stars:2,text:'A concern in the collected sample.',praise:[],concerns:['Synthetic concern'],evidenceIds:['ot-low']}]};
+  t.mock.method(globalThis,'fetch',async()=>Response.json(report));
+  const click=(predicate:(button:HTMLButtonElement)=>boolean)=>act(async()=>Array.from(container.querySelectorAll('button')).find(predicate)!.click());
+  await act(async()=>root.render(createElement(ReviewPanel,{id:'added-provider-filters',name:'Fixture',configuration:{nimble:true,gemini:true}})));
+  await click(button=>button.textContent!.includes('Read reviews'));
+  assert.equal(container.querySelectorAll('.platform-tabs button').length,6);
+  await click(button=>button.textContent!.startsWith('OpenTable'));
+  assert.equal(container.querySelectorAll('.review-excerpt').length,2);
+  await click(button=>button.getAttribute('aria-label')==='2 star reviews');
+  assert.equal(container.querySelectorAll('.review-excerpt').length,1);
+  assert.match(container.querySelector('.summary')!.textContent!,/A concern in the collected sample/);
+  assert.match(container.querySelector('.review-excerpt')!.textContent!,/Synthetic low OpenTable review.*Read on OpenTable/);
+  await click(button=>button.textContent!.startsWith('Tripadvisor'));
+  assert.equal(container.querySelectorAll('.review-excerpt').length,1);
+  assert.match(container.querySelector('.review-excerpt')!.textContent!,/Synthetic Tripadvisor review/);
+  assert.equal(container.querySelector('.summary'),null,'changing providers cannot retain another provider’s summary');
+});

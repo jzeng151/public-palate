@@ -33,7 +33,7 @@ export function ReviewPanel({id,name,configuration}:{id:string;name:string;confi
     {!report&&!loading&&<div className="review-empty">
       <div className="empty-review-icon"><Search size={27}/><Star size={15}/></div>
       <h4>{stars?`The story behind ${stars}-star reviews`:'The reviews, without the tab hopping.'}</h4>
-      <p>Collect public reviews from Google, Yelp, and Grubhub. See what diners agree on, then look closer by platform or star rating.</p>
+      <p>Collect public reviews from Google, Yelp, Grubhub, Tripadvisor, and OpenTable. See what diners agree on, then look closer by platform or star rating.</p>
       <div className="collect-controls"><button className="button-primary" onClick={()=>collect()}>Read reviews <ArrowRight size={16}/></button><label className="engine-select">Summarize with<select aria-label="Summary engine" value={engine} onChange={e=>collection.setEngine(e.target.value as 'nimble'|'gemini')}><option value="nimble">Nimble</option><option value="gemini">Gemini</option></select></label></div>
       {!configuration.nimble&&<p className="setup-note">Live reviews need a Nimble API key. <a href="#setup" onClick={e=>{e.preventDefault();document.getElementById(`setup-${id}`)?.setAttribute('open','');document.getElementById(`setup-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'});}}>View local setup</a></p>}
     </div>}
