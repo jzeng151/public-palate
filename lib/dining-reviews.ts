@@ -54,6 +54,7 @@ export function openTableSource(restaurant:Restaurant,url:string,html:string):So
   const business=object(profile.restaurant),address=object(business.address);
   const id=string(business.restaurantId),name=string(business.name),street=string(address.line1),postal=zip(address.postCode);
   const requestedId=new URL(url).pathname.match(/^\/restaurant\/profile\/(\d+)/)?.[1];
+  if(!id||!name.trim()||!street.trim()||!string(address.postCode).trim())throw new ReviewsPending('OpenTable did not finish loading its restaurant and review records. Try refreshing reviews.');
   if(!/^\d+$/.test(id)||(requestedId&&requestedId!==id)||!matchesRestaurant(restaurant,name,street,postal))throw new Error('OpenTable did not provide a matching restaurant name, street address, and ZIP. No reviews from an uncertain location were used.');
   const statistics=object(object(business.statistics).reviews),ratings=object(statistics.ratings);
   const reviews:Review[]=[],seen=new Set<string>();
@@ -119,7 +120,7 @@ export function tripadvisorSource(restaurant:Restaurant,url:string,html:string):
     seen.add(rawId);
     const rating=card.find('[data-automation="bubbleRatingImage"] title').first().text().match(/^([1-5]) of 5 bubbles$/)?.[1];
     const date=card.find('div').filter((_,node)=>!$(node).children().length&&/^Written /.test($(node).text())).first().text().replace(/^Written /,'').trim();
-    reviews.push({id:`tripadvisor-${rawId}`,platform:'Tripadvisor',text,rating:number(rating,1,5,true),author:card.find('a[href^="/Profile/"]').filter((_,node)=>Boolean($(node).text().trim())).first().text().trim().slice(0,160)||'Anonymous',date:date||null,sourceUrl:url});
+    reviews.push({id:`tripadvisor-${rawId}`,platform:'Tripadvisor',text,rating:number(rating,1,5,true),author:card.find('a[href^="/Profile/"], a[href^="/ClientLink?"]').filter((_,node)=>Boolean($(node).text().trim())).first().text().trim().slice(0,160)||'Anonymous',date:date||null,sourceUrl:url});
   });
   const aggregate=object(business.aggregateRating);
   return source({platform:'Tripadvisor',match:'confirmed',matchedName:name,matchedAddress:`${street}, ${postal}`,sourceUrl:url,rating:number(aggregate.ratingValue,1,5),totalReviews:number(aggregate.reviewCount,0,Number.MAX_SAFE_INTEGER,true),note:'Name, street address, and ZIP matched. Written reviews and individual overall bubble ratings read from the page captured by Nimble.'},reviews);

@@ -65,6 +65,37 @@ test('Tripadvisor cross-street cleanup must belong to the exact location ID',()=
   assert.throws(()=>tripadvisorSource(restaurant,taUrl,taPage({empty:true})),/no written reviews/);
 });
 
+test('Tripadvisor preserves visible authors behind ClientLink anchors',()=>{
+  const clientLink='/ClientLink?value=L1Byb2ZpbGUvZml4dHVyZQ%3D%3D';
+  const page=taPage().replace('/Profile/fixture',clientLink);
+  assert.equal(tripadvisorSource(restaurant,taUrl,page).structured!.reviews[0].author,'Fixture diner');
+});
+
+test('OpenTable retries missing identity state, but never retries a confirmed different location',async()=>{
+  const states=[{}, {windowVariables:{__INITIAL_STATE__:{}}}, {windowVariables:{__INITIAL_STATE__:{restaurantProfile:{restaurant:{restaurantId:1703}}}}}];
+  for(const state of states){
+    const bodies:{driver?:string}[]=[];
+    const request:Parameters<typeof collectDiningReviews>[3]=async <T>(_path:string,body:unknown)=>{
+      bodies.push(body as {driver?:string});
+      return {status:'success',data:{html:bodies.length===1?`<script id="primary-window-vars">${JSON.stringify(state)}</script>`:otPage()}} as T;
+    };
+    const result=await collectDiningReviews(restaurant,'OpenTable',otUrl,request,()=>{},new AbortController().signal);
+    assert.deepEqual(bodies.map(body=>body.driver),['auto','vx10']);
+    assert.equal(result.structured!.reviews.length,1);
+  }
+  let calls=0;
+  const mismatch:Parameters<typeof collectDiningReviews>[3]=async <T>()=>{calls++;return {status:'success',data:{html:otPage({street:'235 West 44th Street'})}} as T;};
+  await assert.rejects(collectDiningReviews(restaurant,'OpenTable',otUrl,mismatch,()=>{},new AbortController().signal),/matching restaurant/);
+  assert.equal(calls,1);
+});
+
+test('OpenTable stops after one retry if profile state never loads',async()=>{
+  let calls=0;
+  const request:Parameters<typeof collectDiningReviews>[3]=async <T>()=>{calls++;return {status:'success',data:{html:'<script id="primary-window-vars">{}</script>'}} as T;};
+  await assert.rejects(collectDiningReviews(restaurant,'OpenTable',otUrl,request,()=>{},new AbortController().signal),/did not finish loading/);
+  assert.equal(calls,2);
+});
+
 test('restaurant URL rules reject lookalike hosts, photo/forum pages and OpenTable directories',()=>{
   for(const url of [taUrl,otUrl,'https://www.opentable.com/sardis','https://www.opentable.com/r/lilia-brooklyn'])assert.equal(isPlatformUrl(url,url.includes('tripadvisor')?'Tripadvisor':'OpenTable'),true);
   for(const url of [taUrl.replace('tripadvisor.com','tripadvisor.com.evil.example'),taUrl.replace('Restaurant_Review','ShowUserReviews'),'https://www.tripadvisor.com/Restaurants-g60763-New_York.html'])assert.equal(isPlatformUrl(url,'Tripadvisor'),false);
