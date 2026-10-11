@@ -2,7 +2,7 @@
   "checks": {
     "typecheck": "passed",
     "tests": {
-      "passed": 27,
+      "passed": 33,
       "liveProviders": "Katz collectors verified previously; Famous Joe Google 20 and Yelp 10 verified through local API; Grubhub wrong branch rejected and Gemini summaries unavailable"
     },
     "productionBuild": "passed",
@@ -178,5 +178,26 @@
       "summaries": 0,
       "analysisWarning": "Gemini unavailable after retry"
     }
+  },
+  "grubhubLoadingFollowup": {
+    "rootCause": "Search sometimes returned the Katz catering URL; app appended /reviews, generating /catering/reviews.",
+    "fix": "Canonical restaurant-ID reviews URL; wait for written review elements; at most one retry of a loading page, matched-but-empty page, timeout, or provider server error with vx10-pro. Wrong-location and auth/quota errors not retried.",
+    "liveResult": {
+      "canonicalUrlOnlyProbeReviews": 30,
+      "reviewElementWaitProbeReviews": 30,
+      "productionCollectorReviews": 30
+    },
+    "regressions": [
+      "Catering URL normalization",
+      "Matched but empty page recovers on retry",
+      "Retry bound",
+      "Wrong branch does not retry"
+    ]
+  },
+  "providerAverages": {
+    "method": "Equal-weight mean of available confirmed provider-wide ratings; no sample mixing and no zero substitution.",
+    "tests": "Calculation and rendered component tests cover differing counts, missing and uncertain ratings, aggregate coverage, and empty state.",
+    "finishReview": "No material source-level truth, UX, or accessibility findings. Actual desktop/mobile render remains unverified because CUA native pipe failed.",
+    "designDetector": "Existing baseline findings and advisory typography sizes relative to stale sidecar. No new color outside existing tokens."
   }
 }

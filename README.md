@@ -31,6 +31,7 @@ Restart `npm run dev` after changing keys. Nimble is required for collection reg
 - Google uses Nimble’s `google_maps_search` and `google_maps_reviews` templates to retrieve 20 reviews by matched Place ID. Yelp uses Nimble search, native extraction to match its business ID, and XHR extraction of its public review feed. Browser network capture provides a fallback. Grubhub waits for its JavaScript and preserves up to 30 written reviews and their star icons from the captured HTML. Each platform’s progress appears in the detail panel.
 - Nimble Web Search Agents or Gemini extracts a review sample and produces summaries across platforms, by platform, and by star tier.
 - Platform and star filters, review excerpts with source links, a sample-only star distribution, refresh, and a downloadable JSON report.
+- Provider-wide average ratings for Google, Yelp, and Grubhub, plus an All platforms average that weights each available provider equally. Missing or unconfirmed ratings are excluded. Review filters do not change these overall ratings.
 - Collection continues when switching restaurants, closing the detail panel, or viewing inspections. Returning restores progress or the completed report. Each restaurant retains its summary engine choice, and repeated starts share the active request. Use Stop to cancel a collection.
 - Explicit missing-key, collection failure, uncertain-location, and empty-sample states. No synthetic reviews are shown in the app.
 
@@ -61,7 +62,7 @@ Review availability depends on what Nimble can retrieve from each public page. L
 
 All three collectors check the restaurant name, normalized street address, and ZIP. Name matching ignores common legal and promotional words such as “LLC,” “Famous,” and “Original”; the street address and ZIP must still match. Yelp also checks that each review belongs to the matched business ID. The server rejects reviews without a confirmed platform match, excerpts absent from the captured evidence, duplicate excerpts, and summaries citing missing reviews or the wrong platform or star tier. Review text, authors, and ratings come directly from captured responses and remain available if summarization fails. Summary meaning still depends on model interpretation and can be wrong. Source links remain available for inspection.
 
-Grubhub uses Nimble’s `vx10` driver and a ten-second wait. Automatic driver selection returned its empty loading shell; rendering without a wait also missed the reviews. HTML is requested alongside Markdown because Markdown omits Grubhub’s star icons. Country restriction and loading pages are reported as unavailable even if the extraction API returns HTTP 200. See [Nimble’s rendering documentation](https://docs.nimbleway.com/nimble-sdk/web-tools/extract/features/js-rendering).
+Grubhub normalizes search results to the restaurant ID’s `/reviews` URL, removing paths such as `/catering` that previously produced `/catering/reviews`. It uses Nimble’s `vx10` driver and waits for written review elements instead of a fixed delay. A loading page, matched page without written reviews, timeout, or provider server error gets one retry with `vx10-pro` and a longer wait. Wrong-location, country restriction, authentication, and quota errors are not retried. HTML retains per-review star icons that Markdown omits. Pages without written reviews remain unavailable after the bounded retry. See [Nimble’s rendering documentation](https://docs.nimbleway.com/nimble-sdk/web-tools/extract/features/js-rendering).
 
 Yelp loads written reviews separately from its business page. A captured HTTP 200 page contained only “Recommended Reviews / Loading…”; rendering attempts also returned provider timeouts. The collector now reads the business identity from the initial page and requests Yelp’s public `GetBusinessReviewFeed` operation through Nimble’s `vx6` XHR mode. It sends no Yelp cookies, login credentials, or visitor identifier. The operation ID was observed in Yelp’s own request on October 11, 2026 and can change. If the fast path fails, a `vx10-pro` browser waits for written reviews and captures the current `/gql/batch` response. Browser fallback can take up to three minutes. Both paths retain individual review IDs, ratings, dates, and text, exclude owner replies, and reject loading pages. See [Nimble’s XHR and network capture documentation](https://docs.nimbleway.com/nimble-sdk/web-tools/extract/features/network-capture).
 
@@ -75,17 +76,20 @@ A fresh local `/api/reviews` request returned all 60 reviews in about 59 seconds
 
 A subsequent Famous Joe’s Pizza test at 7 Carmine Street exposed a name mismatch: Google calls it “Joe’s Pizza.” The shared name normalization fix retrieved 20 Google reviews. A full local API run also returned 10 Yelp reviews in about 19 seconds. Grubhub returned a listing for 1435 Broadway, which failed the location check; Gemini remained unavailable after a retry. React DOM tests reproduce switching away during collection and returning both before and after completion. They also verify that navigation does not issue a duplicate request.
 
+Repeated Katz’s Grubhub requests exposed a catering-page search result. The failed `/catering/reviews` request returned a loading page. Changing only that URL to the canonical restaurant reviews page retrieved 30 reviews. Waiting for the review elements and rerunning the production collector also retrieved 30 reviews. Tests cover catering URLs, matched pages with delayed reviews, the retry limit, and continued rejection of wrong branches.
+
 ## Project structure
 
 - `app/page.tsx`, `app/globals.css`: the approved yellow city catalog.
 - `components/restaurant-detail.tsx`, `components/review-panel.tsx`: inspection and review interactions.
 - `lib/review-collection.ts`: browser collection state and request ownership independent of mounted panels.
+- `components/provider-ratings.tsx`, `lib/review-ratings.ts`: provider-wide ratings and their equal-weight aggregate.
 - `lib/restaurant-data.ts`, `data/restaurants.json`: catalog consolidation and snapshot.
 - `lib/review-pipeline.ts`, `lib/google-reviews.ts`, `lib/yelp-reviews.ts`, `lib/grubhub-reviews.ts`, `lib/review-model.ts`: Nimble collection, model analysis, evidence validation.
 - `app/api/restaurants`, `app/api/reviews`: server-only APIs.
 - `PRODUCT.md`, `DESIGN.md`, `.impeccable/`: product context, design rules, and approved visual reference.
 
-Built with React, TypeScript, and Vinext's Next.js-compatible routing on Vite. It runs locally; no site has been published.
+Built with React, TypeScript, and Vinext's Next.js-compatible routing on Vite. ChatGPT Sites hosting is configured in `.openai/hosting.json`; hosted credentials are runtime secrets managed by Sites, separate from local `.env` files. GitHub source lives at [jzeng151/public-palate](https://github.com/jzeng151/public-palate).
 
 ```sh
 npm run typecheck
