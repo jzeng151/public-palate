@@ -3,6 +3,7 @@ import { analysisJsonSchema, isPlatformUrl, platformDomains, platformNames, vali
 import { collectGoogleReviews } from './google-reviews.ts';
 import { collectGrubhubReviews, grubhubReviewUrl, plausibleGrubhubListing } from './grubhub-reviews.ts';
 import { collectYelpReviews } from './yelp-reviews.ts';
+import { collectDiningReviews } from './dining-reviews.ts';
 
 type Notify=(event:PipelineEvent)=>void;
 export async function nimbleRequest<T>(path:string,body:unknown|undefined,signal:AbortSignal,timeoutMs=90000):Promise<T>{
@@ -22,7 +23,7 @@ export async function collectPlatform(restaurant:Restaurant,platform:Platform,no
     notify({stage:'search',platform,status:'running',message:`Finding ${platform} listing`});
     const search=await nimbleRequest<{results:{url:string;title:string;description:string}[]}>('/search',{
       query:`${restaurant.name} ${restaurant.address} ${restaurant.borough} ${restaurant.zip} restaurant reviews`,
-      include_domains:platformDomains[platform],max_results:5,search_depth:'standard',country:'US'
+      include_domains:platformDomains[platform],max_results:5,search_depth:platform==='Tripadvisor'||platform==='OpenTable'?'lite':'standard',country:'US'
     },signal);
     const tokens=`${restaurant.name} ${restaurant.address} ${restaurant.zip}`.toLowerCase().match(/[a-z0-9]{3,}/g)||[];
     const score=(r:{title:string;description:string})=>tokens.reduce((s,t)=>s+(`${r.title} ${r.description}`.toLowerCase().includes(t)?1:0),0);
@@ -43,6 +44,7 @@ export async function collectPlatform(restaurant:Restaurant,platform:Platform,no
     stage='extract';
     notify({stage:'extract',platform,status:'running',message:`Collecting visible ${platform} reviews`});
     if(platform==='Yelp')return await collectYelpReviews(restaurant,url,nimbleRequest,notify,signal);
+    if(platform==='Tripadvisor'||platform==='OpenTable')return await collectDiningReviews(restaurant,platform,url,nimbleRequest,progress,signal);
     return await collectGrubhubReviews(restaurant,url,nimbleRequest,progress,signal);
   }catch(error){
     if(signal.aborted)throw error;

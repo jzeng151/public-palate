@@ -26,12 +26,12 @@ test('collects available evidence, tolerates platform failures, retries a Gemini
     throw new Error('Unexpected network request');
   });
   const result=await runReviewPipeline(restaurant,'gemini',e=>events.push(e),new AbortController().signal);
-  assert.equal(requests.filter(r=>r.url.endsWith('/search')).length,3);
-  assert.equal(requests.filter(r=>r.body.search_depth==='lite').length,1);
+  assert.equal(requests.filter(r=>r.url.endsWith('/search')).length,5);
+  assert.equal(requests.filter(r=>r.body.search_depth==='lite').length,3);
   assert.equal(result.sources.filter(s=>s.status==='collected').length,1);
   assert.equal(result.reviews.length,1);
   assert.equal(result.summaries.length,1);
-  assert.equal(result.platforms.length,3);
+  assert.equal(result.platforms.length,5);
   assert.equal(result.sources.some(s=>'content' in s),false);
   assert.equal(result.engine,'gemini');
   assert.equal(modelCalls,2);
@@ -47,7 +47,7 @@ test('does not ask a model to summarize when every platform is unavailable',asyn
     return Response.json({error:'Test quota error'},{status:429});
   });
   const result=await runReviewPipeline(restaurant,'nimble',()=>{},new AbortController().signal);
-  assert.equal(calls,3);assert.equal(result.reviews.length,0);assert.equal(result.summaries.length,0);
+  assert.equal(calls,5);assert.equal(result.reviews.length,0);assert.equal(result.summaries.length,0);
   assert.ok(result.sources.every(s=>s.status==='unavailable'));
   assert.ok(result.platforms.every(p=>p.note.includes('request limit')));
 });
