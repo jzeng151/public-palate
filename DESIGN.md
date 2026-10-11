@@ -169,7 +169,7 @@ The header and main content share a centered maximum width (1504px). Desktop hor
 
 The catalog uses three columns on desktop, two below 1120px, and one below 720px. The selected restaurant opens in a full-width panel immediately below its row. Its identity and review content occupy two columns on desktop and stack below 1120px. The detail photograph disappears below 720px; the name, grade, actions, and reviews remain.
 
-Search shares a row with three filters on desktop. Below 1120px, search spans a full row above the three filters. Below 720px, borough and cuisine share a row while health grade spans its own row. The header tagline disappears below 1271px; the city label disappears below 720px. Review platform tabs can scroll; star filters can wrap. Review-summary comparison columns stack on narrow screens.
+Search shares a row with three filters on desktop. Below 1120px, search spans a full row above the three filters. Below 720px, borough and cuisine share a row while health grade spans its own row. The header tagline disappears below 1271px; the city label disappears below 720px. Review platform tabs can scroll on desktop and form a two-column grid below 720px; star filters can wrap. The All platforms rating and five provider ratings form three columns, reducing to two below 600px. OpenTable labels the rating time window separately from its all-time written-review count. Review-summary comparison columns stack on narrow screens.
 
 The desktop display clamp has explicit responsive overrides: 52px below 1271px, 47px below 1120px, and 42px below 720px. Card-name sizes also adjust to available column width. These are implemented behaviors; the narrow layout and complete expanded detail have not yet received visual verification in a browser.
 
