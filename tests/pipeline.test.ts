@@ -26,7 +26,8 @@ test('collects available evidence, tolerates platform failures, retries a Gemini
     throw new Error('Unexpected network request');
   });
   const result=await runReviewPipeline(restaurant,'gemini',e=>events.push(e),new AbortController().signal);
-  assert.equal(requests.filter(r=>r.url.endsWith('/search')).length,2);
+  assert.equal(requests.filter(r=>r.url.endsWith('/search')).length,3);
+  assert.equal(requests.filter(r=>r.body.search_depth==='lite').length,1);
   assert.equal(result.sources.filter(s=>s.status==='collected').length,1);
   assert.equal(result.reviews.length,1);
   assert.equal(result.summaries.length,1);

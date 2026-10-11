@@ -21,3 +21,10 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
 
 .provider-ratings{margin-top:24px}.provider-ratings h4{font-size:16px;font-weight:600}.provider-ratings dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:16px 0;border-bottom:1px solid var(--line);margin:0}.provider-ratings dt{font-size:13px;font-weight:500;margin-bottom:5px}.provider-ratings dd{margin:0;font-size:13px;color:var(--muted)}.provider-ratings dd strong{font-size:26px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}.provider-ratings small{display:block;font-size:12px;line-height:1.4;margin-top:4px}.provider-ratings>p{font-size:12px;line-height:1.5;color:var(--muted);margin-top:10px;max-width:65ch}.rating-unavailable{display:inline-block;font-size:14px;line-height:32px}.rating-aggregate dt{font-weight:700}@media(max-width:599px){.provider-ratings dl{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px}}
+
+/* Diner scores have their own scale, separate from official health grades. */
+:root{--rating-high:#327745;--rating-medium:#966000;--rating-low:#b42318}
+.rating-high{color:var(--rating-high)}.rating-medium{color:var(--rating-medium)}.rating-low{color:var(--rating-low)}
+.provider-ratings dd .rating-score strong{color:inherit}.rating-band{display:block;font-size:12px;font-weight:700;text-transform:capitalize;line-height:1.6}
+.provider-ratings .rating-legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;font-weight:600}
+.provider-issues{margin:0 0 24px;padding:18px 0;border-block:1px solid var(--line)}.provider-issues h4{margin:0 0 10px;font-size:15px}.provider-issues>div{margin-bottom:14px}.provider-issues p{margin:0;font-size:14px;line-height:1.6;overflow-wrap:anywhere}.provider-issues a{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:13px;text-decoration:underline}

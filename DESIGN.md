@@ -13,6 +13,9 @@ colors:
   green: "#327745"
   orange: "#bb5a18"
   neutral: "#616a76"
+  rating-high: "#327745"
+  rating-medium: "#966000"
+  rating-low: "#b42318"
   focus: "#145bcc"
 typography:
   display:
@@ -133,6 +136,8 @@ The palette combines taxi yellow and navy with the established NYC grade color a
 - **White** (`white`): catalog entries, controls, and grade placards.
 - **Divider Gray** (`line`): quiet boundaries between content and controls.
 - **Pending Gray** (`neutral`): pending and ungraded health states.
+
+**The Diner Rating Rule.** Provider and aggregate scores use green for displayed scores 4.0–5.0, amber for 3.0–3.9, and red below 3.0. Each score carries a High, Medium, or Low label; missing ratings stay neutral and say Unavailable. This scale is separate from NYC health grades. Provider collection failures remain visible in completed reports, with a source link when known and a refresh action.
 
 **The Official Grade Rule.** A is blue, B is green, and C is orange. Pending and ungraded records use gray and explicit words. Keep the letter and health-grade label visible; color alone does not convey the grade.
 

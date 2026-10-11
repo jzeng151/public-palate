@@ -100,3 +100,54 @@ test('explains a Yelp extraction timeout with platform context',async t=>{
   assert.equal(source.status,'unavailable');
   assert.match(source.error||'',/Yelp.*timed out/);
 });
+
+test('does not extract a Grubhub candidate for a similarly named restaurant at another address',async t=>{
+  let extracts=0;
+  t.mock.method(globalThis,'fetch',async (input:unknown)=>{
+    if(String(input).endsWith('/extract')){extracts++;return Response.json({status:'success',data:{html:reviewHtml()}});}
+    return Response.json({results:[{url:'https://www.grubhub.com/restaurant/monkey-thai-diner-291-central-avenue-clark/11628328',title:'Monkey Thai Diner - Clark, NJ',description:'291 Central Avenue'}]});
+  });
+  const source=await collectPlatform({...restaurant,name:'Thai Diner',address:'186 Mott Street',zip:'10012'},'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(extracts,0,'irrelevant results must be rejected before extraction');
+  assert.match(source.error!,/No matching Grubhub listing/);
+});
+
+test('retries a Grubhub country restriction once through a US New York request',async t=>{
+  let extracts=0;
+  t.mock.method(globalThis,'fetch',async(input:unknown,init?:RequestInit)=>{
+    if(String(input).endsWith('/search'))return Response.json({results:[listing]});
+    extracts++;const body=JSON.parse(String(init?.body));
+    if(extracts===2){assert.equal(body.country,'US');assert.equal(body.state,'NY');}
+    return Response.json({status:'success',status_code:200,data:{html:extracts===1?'<title>Grubhub food delivery is not available in your country</title>':reviewHtml()}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(source.status,'collected');assert.equal(extracts,2);
+});
+
+test('reports a retired Grubhub listing without retrying or borrowing nearby restaurant reviews',async t=>{
+  let extracts=0;
+  t.mock.method(globalThis,'fetch',async (input:unknown)=>{
+    if(String(input).endsWith('/search'))return Response.json({results:[listing]});
+    extracts++;
+    return Response.json({status:'success',data:{html:'<h1>Katz’s Delicatessen</h1><button data-testid="restaurant-address-button">205 E Houston St</button><h3>Not available on Grubhub anymore</h3><h2>Similar options nearby</h2>'+reviewHtml({...business,name:'Other Deli'})}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(source.status,'unavailable');assert.equal(extracts,1);
+  assert.match(source.error!,/no longer available on Grubhub/);
+});
+
+test('uses lite URL discovery when standard Grubhub search misses the precise restaurant',async t=>{
+  let searches=0;
+  t.mock.method(globalThis,'fetch',async(input:unknown,init?:RequestInit)=>{
+    const body=JSON.parse(String(init?.body));
+    if(String(input).endsWith('/search')){
+      searches++;
+      if(body.search_depth==='lite')return Response.json({results:[{url:'https://www.grubhub.com/restaurant/katzs-delicatessen-1-other-st-brooklyn/222',title:restaurant.name,description:'1 Other Street'},listing]});
+      return Response.json({results:[]});
+    }
+    assert.equal(body.url,url);
+    return Response.json({status:'success',data:{html:reviewHtml()}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(searches,2);assert.equal(source.status,'collected');assert.equal(source.url,url);
+});
