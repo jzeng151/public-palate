@@ -13,6 +13,17 @@ test('normalizes business descriptors without accepting different businesses or 
   assert.equal(matchesRestaurant({...restaurant,name:'The Original Inc'},'The Famous LLC','1 E Test St','10001'),false);
 });
 
+test('preserves exact names made only of descriptors without matching unrelated generic names',()=>{
+  const expected={...restaurant,name:'The Restaurant',address:'86-05 Rockaway Beach Boulevard',zip:'11693'};
+  assert.equal(matchesRestaurant(expected,'The Restaurant','86-05 Rockaway Beach Blvd','11693'),true);
+  assert.equal(matchesRestaurant(expected,'The Restaurant','86-06 Rockaway Beach Blvd','11693'),false);
+  assert.equal(matchesRestaurant(expected,'The Restaurant','86-05 Rockaway Beach Blvd','11694'),false);
+  assert.equal(matchesRestaurant(expected,'Other Restaurant','86-05 Rockaway Beach Blvd','11693'),false);
+  assert.equal(matchesRestaurant(expected,'The Original Restaurant','86-05 Rockaway Beach Blvd','11693'),false);
+  assert.equal(matchesRestaurant({...expected,name:'The Original Restaurant Inc'},'The Famous Restaurant LLC',expected.address,expected.zip),false);
+  assert.equal(matchesRestaurant({...expected,name:'!!!'},'???',expected.address,expected.zip),false);
+});
+
 test('normalizes numeric street ordinals and the restaurant descriptor without accepting another address',()=>{
   const expected={...restaurant,name:"Sardi's Restaurant",address:'234 West 44 Street',zip:'10036'};
   assert.equal(matchesRestaurant(expected,"Sardi’s",'234 W 44th St','10036'),true);
