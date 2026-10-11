@@ -5,6 +5,7 @@ import {ArrowUpRight,ArrowRight,Check,ChevronDown,Download,ExternalLink,LoaderCi
 import {platformNames} from '@/lib/review-model';
 import {getReviewCollection} from '@/lib/review-collection';
 import {formatDate} from '@/lib/presentation';
+import {ProviderRatings} from './provider-ratings';
 
 export function ReviewPanel({id,name,configuration}:{id:string;name:string;configuration:{nimble:boolean;gemini:boolean}}){
   const collection=useMemo(()=>getReviewCollection(id,configuration.gemini?'gemini':'nimble'),[id,configuration.gemini]);
@@ -14,7 +15,6 @@ export function ReviewPanel({id,name,configuration}:{id:string;name:string;confi
   const [stars,setStars]=useState<number|null>(null);
   const reviews=report?.reviews.filter(r=>(platform==='All'||r.platform===platform)&&(stars===null||r.rating===stars))||[];
   const summary=report?.summaries.find(s=>s.platform===platform&&s.stars===stars);
-  const platformReport=report?.platforms.find(p=>p.platform===platform);
   const groupReviews=report?.reviews.filter(r=>platform==='All'||r.platform===platform)||[];
   function exportReport(){
     if(!report)return;const blob=new Blob([JSON.stringify({restaurant:{id,name},...report},null,2)],{type:'application/json'});
@@ -22,6 +22,7 @@ export function ReviewPanel({id,name,configuration}:{id:string;name:string;confi
   }
   return <section className="reviews-panel" aria-label={`Reviews for ${name}`}>
     <div className="review-title"><div><h3>What people are saying</h3><p>Different platforms. A fuller picture.</p></div><span className="nimble-credit"><Workflow size={14}/> Powered by Nimble</span></div>
+    {report&&<ProviderRatings platforms={report.platforms}/>}
     <div className="platform-tabs" role="group" aria-label="Review platform">
       {['All',...platformNames].map(p=><button key={p} aria-pressed={platform===p} onClick={()=>{setPlatform(p);setStars(null);}} className={platform===p?'active':''}>{p==='All'?'All platforms':p}{report&&<span>{report.reviews.filter(r=>p==='All'||r.platform===p).length}</span>}</button>)}
     </div>
@@ -40,7 +41,7 @@ export function ReviewPanel({id,name,configuration}:{id:string;name:string;confi
     {error&&<div className="error-notice" role="alert"><p>{error}</p>{!loading&&<button className="text-button" onClick={()=>collect(Boolean(report))}>Try again <RefreshCw size={14}/></button>}</div>}
     {report&&<div className="review-results">
       {report.analysisWarning&&<div className="error-notice" role="status"><p>Reviews were collected, but the summary is unavailable. {report.analysisWarning}</p></div>}
-      <div className="sample-meta"><span>{reviews.length} collected {reviews.length===1?'review':'reviews'}{stars?` · ${stars} stars`:''}</span>{platformReport?.match==='confirmed'&&platformReport.rating!==null&&<span><Star size={13} fill="currentColor"/> {platformReport.rating} on {platform}{platformReport.totalReviews!==null?` · ${platformReport.totalReviews.toLocaleString()} total`:''}</span>}</div>
+      <div className="sample-meta"><span>{reviews.length} collected {reviews.length===1?'review':'reviews'}{stars?` · ${stars} stars`:''}</span></div>
       {summary?<div className="summary"><span className="summary-label"><Check size={14}/> Review summary · {report.engine==='gemini'?'Gemini':'Nimble'}</span><p>{summary.text}</p><div className="summary-columns">{summary.praise.length>0&&<div><h4>Diners liked</h4><ul>{summary.praise.map((p,i)=><li key={i}>{p}</li>)}</ul></div>}{summary.concerns.length>0&&<div><h4>Worth knowing</h4><ul>{summary.concerns.map((p,i)=><li key={i}>{p}</li>)}</ul></div>}</div><div className="summary-evidence">Based on {summary.evidenceIds.length} collected reviews. <a href={`#review-${summary.evidenceIds[0]}`}>See the evidence <ArrowUpRight size={12}/></a></div></div>:<div className="no-summary"><h4>{reviews.length?'Review evidence is available':'No collected reviews in this group'}</h4><p>{reviews.length?'A supported summary was not returned for this group. You can read the original excerpts below.':'Try all ratings or another platform. A missing sample does not mean the restaurant has no reviews.'}</p></div>}
       {groupReviews.some(r=>r.rating!==null)&&<details className="sample-distribution"><summary>Star distribution of collected reviews <ChevronDown size={14}/></summary><div>{[5,4,3,2,1].map(star=>{const count=groupReviews.filter(r=>r.rating===star).length;return <button key={star} className="histogram-row" onClick={()=>setStars(star)}><span>{star}<Star size={11}/></span><span className="histogram-track"><span style={{width:`${count/groupReviews.length*100}%`}}/></span><span>{count}</span></button>;})}</div><p>Collected sample only. This is not the platform’s full rating distribution.</p></details>}
       {reviews.length>0&&<div className="review-excerpts"><h4>From the original reviews</h4>{reviews.slice(0,12).map(review=><article className="review-excerpt" id={`review-${review.id}`} key={review.id}><div className="review-byline"><span className="review-avatar">{review.author.slice(0,1).toUpperCase()}</span><div><strong>{review.author}</strong><span>{review.platform}{review.date?` · ${review.date}`:''}</span></div>{review.rating!==null&&<span className="review-stars" aria-label={`${review.rating} out of 5 stars`}>{Array.from({length:review.rating},(_,i)=><Star size={12} fill="currentColor" key={i}/>)}</span>}</div><blockquote>{review.text}</blockquote><a href={review.sourceUrl} target="_blank" rel="noreferrer">Read on {review.platform} <ExternalLink size={12}/></a></article>)}{reviews.length>12&&<p className="subtle">Showing 12 of {reviews.length} excerpts. Download the collected data for the full sample.</p>}</div>}
