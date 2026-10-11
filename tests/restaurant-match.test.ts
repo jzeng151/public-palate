@@ -36,3 +36,11 @@ test('does not confirm a location when the catalog ZIP is missing',()=>{
   assert.equal(matchesRestaurant(expected,restaurant.name,restaurant.address,'10001'),false);
   assert.equal(matchesRestaurant(expected,restaurant.name,`${restaurant.address}, NY 10001`,'10001'),false);
 });
+
+test('requires numeric name identifiers to match even at the same address',()=>{
+  const expected={...restaurant,name:'No.1 Favor Taste Restaurant',address:'732 61 Street',zip:'11220'};
+  assert.equal(matchesRestaurant(expected,'No 2 Favor Taste Inc.','732 61st Street','11220'),false);
+  assert.equal(matchesRestaurant(expected,'No 1 Favor Taste Inc.','732 61st Street','11220'),true);
+  assert.equal(matchesRestaurant(expected,'No 1 Favor Taste 2','732 61st Street','11220'),false);
+  assert.equal(matchesRestaurant({...expected,name:'Favor Taste'},'Favor Taste 2','732 61st Street','11220'),false);
+});

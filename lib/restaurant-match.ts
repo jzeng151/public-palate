@@ -10,6 +10,9 @@ export function normalizeStreet(input:string){
   return normalizeName(input.split(',')[0]).replace(/\b(\d+)(?:st|nd|rd|th)\b/g,'$1').split(' ').map(word=>abbreviations[word]||word).join(' ');
 }
 export function matchesRestaurantName(expected:string,name:string){
+  const expectedNumbers=new Set(normalizeName(expected).match(/\d+/g)||[]);
+  const candidateNumbers=new Set(normalizeName(name).match(/\d+/g)||[]);
+  if(expectedNumbers.size!==candidateNumbers.size||Array.from(expectedNumbers).some(number=>!candidateNumbers.has(number)))return false;
   const tokens=nameTokens(expected);
   const candidateTokens=nameTokens(name);
   // A real name such as "The Restaurant" can consist entirely of descriptors.
