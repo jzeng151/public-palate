@@ -1,7 +1,7 @@
 import type { Restaurant } from './restaurant-data';
 import { analysisJsonSchema, isPlatformUrl, platformDomains, platformNames, validateAnalysis, type PipelineEvent, type Platform, type ReviewReport, type SourcePage } from './review-model.ts';
 import { collectGoogleReviews } from './google-reviews.ts';
-import { grubhubSource } from './grubhub-reviews.ts';
+import { collectGrubhubReviews, grubhubReviewUrl } from './grubhub-reviews.ts';
 import { collectYelpReviews } from './yelp-reviews.ts';
 
 type Notify=(event:PipelineEvent)=>void;
@@ -30,23 +30,12 @@ export async function collectPlatform(restaurant:Restaurant,platform:Platform,no
     if(!candidate)throw new Error(`No public ${platform} restaurant page found.`);
     const listingUrl=new URL(candidate.url);
     listingUrl.search='';listingUrl.hash='';
-    if(platform==='Grubhub')listingUrl.pathname=listingUrl.pathname.replace(/\/reviews\/?$/,'').replace(/\/$/,'')+'/reviews';
-    url=listingUrl.href;
+    url=platform==='Grubhub'?grubhubReviewUrl(listingUrl.href):listingUrl.href;
     notify({stage:'search',platform,status:'complete',message:`${platform} candidate found`});
     stage='extract';
     notify({stage:'extract',platform,status:'running',message:`Collecting visible ${platform} reviews`});
     if(platform==='Yelp')return await collectYelpReviews(restaurant,url,nimbleRequest,notify,signal);
-    const result=await nimbleRequest<{status:string;status_code?:number;data?:{html?:string}}>('/extract',{
-      url,formats:['html','markdown'],render:true,driver:'vx10',browser_actions:[{wait:'10s'}],request_timeout:60000
-    },signal);
-    const html=result.data?.html||'';
-    const title=html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'';
-    if(/not available in your country/i.test(title))throw new Error(`${platform} returned a country restriction page instead of reviews. Try refreshing reviews.`);
-    if(/prepare your taste buds/i.test(title))throw new Error('Grubhub returned its loading page before reviews were available. Try refreshing reviews.');
-    if(result.status!=='success'||(result.status_code&&result.status_code>=400))throw new Error(`${platform} did not return readable review content.`);
-    const source=grubhubSource(restaurant,url,html);
-    notify({stage:'extract',platform,status:'complete',message:`${source.structured!.reviews.length} ${platform} reviews collected`});
-    return source;
+    return await collectGrubhubReviews(restaurant,url,nimbleRequest,progress,signal);
   }catch(error){
     if(signal.aborted)throw error;
     const message=error instanceof Error&&error.name==='TimeoutError'?`${platform} collection timed out while waiting for Nimble. Try refreshing reviews.`:error instanceof Error?error.message:'Collection failed. Try again.';

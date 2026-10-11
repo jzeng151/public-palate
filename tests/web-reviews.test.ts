@@ -14,7 +14,7 @@ test('waits for Grubhub JavaScript instead of collecting its empty loading shell
   t.mock.method(globalThis,'fetch',async (input:string|URL|Request,init?:RequestInit)=>{
     if(String(input).endsWith('/search'))return Response.json({results:[listing]});
     const body=JSON.parse(String(init?.body));
-    const rendered=body.driver==='vx10'&&body.render===true&&body.browser_actions?.some((action:{wait?:string})=>action.wait==='10s');
+    const rendered=body.driver==='vx10'&&body.render===true&&body.browser_actions?.some((action:{wait_for_element?:{selector?:string}})=>action.wait_for_element?.selector?.includes('review-content'));
     return Response.json({status:'success',status_code:200,data:rendered?{html:reviewHtml(),markdown:`# ${restaurant.name} Reviews\n${restaurant.address}, New York NY 10002\nFixture diner: ${reviewText}`}:{html:'<title>Prepare your taste buds...</title>',markdown:''}});
   });
   const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
@@ -26,10 +26,49 @@ test('waits for Grubhub JavaScript instead of collecting its empty loading shell
 });
 
 test('rejects Grubhub reviews for a different branch',async t=>{
-  t.mock.method(globalThis,'fetch',async (input:string|URL|Request)=>Response.json(String(input).endsWith('/search')?{results:[listing]}:{status:'success',data:{html:reviewHtml({...business,address:{streetAddress:'1 Other Street',postalCode:'10002'}}),markdown:`${restaurant.name}: ${reviewText}`}}));
+  let requests=0;
+  t.mock.method(globalThis,'fetch',async (input:string|URL|Request)=>{requests++;return Response.json(String(input).endsWith('/search')?{results:[listing]}:{status:'success',data:{html:reviewHtml({...business,address:{streetAddress:'1 Other Street',postalCode:'10002'}}),markdown:`${restaurant.name}: ${reviewText}`}});});
   const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
   assert.equal(source.status,'unavailable');
   assert.match(source.error||'',/address/);
+  assert.equal(requests,2,'wrong branches must not trigger another extraction');
+});
+
+test('uses the canonical review URL when search returns a catering page',async t=>{
+  t.mock.method(globalThis,'fetch',async (input:unknown,init?:RequestInit)=>{
+    if(String(input).endsWith('/search'))return Response.json({results:[{...listing,url:url.replace('/reviews','/catering?utm_source=test')}]});
+    const body=JSON.parse(String(init?.body));
+    return Response.json({status:'success',data:{html:body.url===url?reviewHtml():`<script type="application/ld+json">${JSON.stringify(business)}</script>`}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(source.url,url);assert.equal(source.status,'collected');assert.equal(source.structured?.reviews.length,1);
+});
+
+test('retries a matched Grubhub page whose written reviews have not loaded',async t=>{
+  let extracts=0;
+  t.mock.method(globalThis,'fetch',async (input:unknown,init?:RequestInit)=>{
+    if(String(input).endsWith('/search'))return Response.json({results:[listing]});
+    extracts++;
+    const body=JSON.parse(String(init?.body));
+    if(extracts===2){
+      assert.equal(body.driver,'vx10-pro');
+      assert.ok(body.browser_actions.some((action:{wait_for_element?:{selector?:string}})=>action.wait_for_element?.selector?.includes('review-content')));
+    }
+    return Response.json({status:'success',data:{html:extracts===1?`<script type="application/ld+json">${JSON.stringify(business)}</script><p>Reviews loading</p>`:reviewHtml()}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(extracts,2);assert.equal(source.status,'collected');assert.equal(source.structured?.reviews.length,1);
+});
+
+test('stops after one retry when Grubhub keeps returning a matched page without reviews',async t=>{
+  let extracts=0;
+  t.mock.method(globalThis,'fetch',async (input:unknown)=>{
+    if(String(input).endsWith('/search'))return Response.json({results:[listing]});
+    extracts++;
+    return Response.json({status:'success',data:{html:`<script type="application/ld+json">${JSON.stringify(business)}</script>`}});
+  });
+  const source=await collectPlatform(restaurant,'Grubhub',()=>{},new AbortController().signal);
+  assert.equal(extracts,2);assert.equal(source.status,'unavailable');assert.match(source.error!,/written reviews did not finish loading/);
 });
 
 test('keeps Grubhub review text and stars when Gemini fails',async t=>{
