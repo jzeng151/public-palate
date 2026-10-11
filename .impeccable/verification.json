@@ -1,0 +1,182 @@
+{
+  "checks": {
+    "typecheck": "passed",
+    "tests": {
+      "passed": 27,
+      "liveProviders": "Katz collectors verified previously; Famous Joe Google 20 and Yelp 10 verified through local API; Grubhub wrong branch rejected and Gemini summaries unavailable"
+    },
+    "productionBuild": "passed",
+    "localHttp": "passed",
+    "gradeFilters": "A/B/C semantic mapping; B, C and pending HTTP queries verified",
+    "lastPage": "page 2627 reachable"
+  },
+  "designReview": {
+    "reviewer": "impeccable_finish_reviewer",
+    "composition": "matches approved city catalog on reviewed desktop screenshot",
+    "materialFixes": [
+      {
+        "item": "Card caption discloses illustrative imagery",
+        "status": "partial",
+        "evidence": "Changed to Illustrative photo in source; recapture unavailable"
+      },
+      {
+        "item": "Complete detail and mobile rendered verification",
+        "status": "unresolved",
+        "reason": "Native CUA pipe startup failure persisted after reset; browser provider unavailable"
+      }
+    ]
+  },
+  "constraints": [
+    "Browser automation failed before final mobile and full-detail screenshots."
+  ],
+  "preview": "http://localhost:5173",
+  "providerVerification": {
+    "nimbleAuthentication": "HTTP 200 search request",
+    "geminiAuthentication": "HTTP 200 generateContent request",
+    "serverConfiguration": {
+      "nimble": true,
+      "gemini": true
+    },
+    "credentialLoading": "Removed blank .env.local overrides masking configured .env keys",
+    "browserBundleContainsCredentials": false,
+    "nycOpenData": "Live inspection request passed with configured app token",
+    "restaurantRun": {
+      "restaurant": "Thai Diner",
+      "Google": "No readable content",
+      "Yelp": "Extraction timed out",
+      "Grubhub": "Page collected",
+      "Gemini": "503 during larger analysis; minimal generation passed",
+      "followup": "Added one transient-error retry and distinct provider-outage message; covered by test"
+    },
+    "nimbleAgents": "Completed live structured-output run with status ok"
+  },
+  "googleReviewDiagnosis": {
+    "restaurant": "Katz's Delicatessen",
+    "rootCause": "Generic google.com search returned five Google Translate article URLs and no Maps listing; collector stopped before extraction.",
+    "fix": "Dedicated google_maps_search then google_maps_reviews templates, matched name/street/ZIP and Place ID; keep structured reviews if analysis fails.",
+    "liveResult": {
+      "reviews": 20,
+      "placeId": "ChIJCar0f49ZwokR6ozLV-dHNTE",
+      "status": "passed"
+    },
+    "regressions": [
+      "Maps lookup and structured review collection",
+      "Wrong branch rejected",
+      "Collected reviews survive summarizer failure"
+    ],
+    "sources": [
+      "https://docs.nimbleway.com/nimble-sdk/agentic/agent-gallery",
+      "https://docs.nimbleway.com/api-reference/extract-templates-api/run-extract-template"
+    ]
+  },
+  "webReviewDiagnosis": {
+    "restaurant": "Katz's Delicatessen",
+    "Grubhub": {
+      "rootCause": "Automatic driver selected vx6 and returned empty Markdown; HTML probes showed a country restriction or JavaScript loading shell. vx10 still needed a ten-second wait. Markdown omitted per-review star icons.",
+      "fix": "Use vx10 with ten-second wait, request HTML and Markdown, parse review cards and star icons, verify name/address/ZIP, retain reviews if summarization fails.",
+      "liveResult": {
+        "reviews": 30,
+        "reviewsWithDates": 30,
+        "ratings": {
+          "1": 5,
+          "2": 2,
+          "3": 5,
+          "4": 3,
+          "5": 15
+        },
+        "status": "passed"
+      }
+    },
+    "Yelp": {
+      "status": "passed",
+      "rootCause": "Business HTML could return HTTP 200 while the separate review feed remained Loading. Rendered requests were intermittent, including provider HTTP 555 execution timeout at 153 seconds. Generic page extraction did not capture the structured review feed.",
+      "fix": "Match name/street/ZIP and business ID in native HTML; retrieve the public GetBusinessReviewFeed query through Nimble vx6 XHR without visitor cookies or ID. Fall back to vx10-pro browser network capture and wait for written review elements. Preserve structured reviews independently of summary provider.",
+      "liveResult": {
+        "reviews": 10,
+        "reviewsWithDates": 10,
+        "ratings": [
+          5,
+          4,
+          3,
+          4,
+          4,
+          5,
+          5,
+          1,
+          5,
+          3
+        ],
+        "identityExtractionMs": 3447,
+        "reviewExtractionMs": 3991,
+        "separateNoVisitorProbeMs": 1372
+      },
+      "browserFallback": {
+        "status": "passed",
+        "durationMs": 56069
+      },
+      "regressions": [
+        "Native matched business ID and credential-free XHR",
+        "Browser network capture fallback",
+        "HTML-escaped business name",
+        "Ignore preview records, duplicates, and owner replies",
+        "Wrong branch and unrelated business ID rejected",
+        "Loading page does not count as review collection",
+        "Reviews survive Gemini failure"
+      ],
+      "maintenance": "The public operation document ID may change; browser capture is the fallback.",
+      "localApiResult": {
+        "status": "passed",
+        "durationMs": 59302,
+        "reviews": {
+          "Google": 20,
+          "Yelp": 10,
+          "Grubhub": 30
+        },
+        "summaries": 0,
+        "analysisWarning": "Gemini temporarily unavailable after retry; original review evidence retained"
+      }
+    },
+    "regressions": [
+      "Grubhub rendering and waiting",
+      "Individual ratings survive Markdown loss",
+      "Wrong branch rejected",
+      "Reviews survive Gemini failure",
+      "Country restriction is not reported as collected",
+      "Yelp timeout includes platform context"
+    ],
+    "sources": [
+      "https://docs.nimbleway.com/nimble-sdk/web-tools/extract/features/js-rendering",
+      "https://docs.nimbleway.com/nimble-sdk/web-tools/extract/features/network-capture"
+    ]
+  },
+  "collectionNavigationDiagnosis": {
+    "rootCause": "ReviewPanel unmount aborted the fetch and discarded local progress; returning showed a new start while the server could still be collecting.",
+    "fix": "Restaurant-scoped browser collection state owns each request; panels only subscribe. Navigation preserves the request, progress, engine selection, and reports. Explicit Stop aborts.",
+    "regressions": [
+      "Actual React DOM unmount/remount while collection runs",
+      "Restore progress without another request",
+      "Retain results completed while another restaurant is displayed",
+      "Independent concurrent collections and engines",
+      "Explicit Stop and stale-response isolation",
+      "Split SSE chunks and report preservation on refresh failure"
+    ],
+    "limitation": "Client state lasts until page reload or tab close. Native browser QA unavailable due CUA pipe startup failure; actual React DOM lifecycle tested in jsdom."
+  },
+  "famousJoeDiagnosis": {
+    "restaurant": "Famous Joe's Pizza",
+    "address": "7 Carmine Street, Manhattan, NY 10014",
+    "rootCause": "Nimble returned Joe's Pizza at the correct street and ZIP; the catalog name's Famous prefix failed the name overlap threshold.",
+    "fix": "Shared matcher ignores common legal and promotional words while still requiring normalized street and ZIP. No restaurant-specific override.",
+    "liveLocalApi": {
+      "durationMs": 19117,
+      "reviews": {
+        "Google": 20,
+        "Yelp": 10,
+        "Grubhub": 0
+      },
+      "grubhub": "Search selected 1435 Broadway; rejected as wrong branch.",
+      "summaries": 0,
+      "analysisWarning": "Gemini unavailable after retry"
+    }
+  }
+}

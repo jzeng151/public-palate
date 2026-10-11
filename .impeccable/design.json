@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T19:28:11.603152+00:00",
+  "title": "Design System: Public Palate",
+  "extensions": {
+    "colorMeta": {
+      "yellow": {
+        "role": "primary",
+        "displayName": "Taxi Yellow",
+        "tonalRamp": [
+          "oklch(15.00% 0.16858 95.97)",
+          "oklch(26.43% 0.16858 95.97)",
+          "oklch(37.86% 0.16858 95.97)",
+          "oklch(49.29% 0.16858 95.97)",
+          "oklch(60.71% 0.16858 95.97)",
+          "oklch(72.14% 0.16858 95.97)",
+          "oklch(83.57% 0.16858 95.97)",
+          "oklch(95.00% 0.16858 95.97)"
+        ]
+      },
+      "yellow-deep": {
+        "role": "primary",
+        "displayName": "Deep Yellow",
+        "tonalRamp": [
+          "oklch(15.00% 0.15376 90.30)",
+          "oklch(26.43% 0.15376 90.30)",
+          "oklch(37.86% 0.15376 90.30)",
+          "oklch(49.29% 0.15376 90.30)",
+          "oklch(60.71% 0.15376 90.30)",
+          "oklch(72.14% 0.15376 90.30)",
+          "oklch(83.57% 0.15376 90.30)",
+          "oklch(95.00% 0.15376 90.30)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.05701 263.82)",
+          "oklch(26.43% 0.05701 263.82)",
+          "oklch(37.86% 0.05701 263.82)",
+          "oklch(49.29% 0.05701 263.82)",
+          "oklch(60.71% 0.05701 263.82)",
+          "oklch(72.14% 0.05701 263.82)",
+          "oklch(83.57% 0.05701 263.82)",
+          "oklch(95.00% 0.05701 263.82)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate Text",
+        "tonalRamp": [
+          "oklch(15.00% 0.03714 259.96)",
+          "oklch(26.43% 0.03714 259.96)",
+          "oklch(37.86% 0.03714 259.96)",
+          "oklch(49.29% 0.03714 259.96)",
+          "oklch(60.71% 0.03714 259.96)",
+          "oklch(72.14% 0.03714 259.96)",
+          "oklch(83.57% 0.03714 259.96)",
+          "oklch(95.00% 0.03714 259.96)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divider Gray",
+        "tonalRamp": [
+          "oklch(15.00% 0.01096 256.70)",
+          "oklch(26.43% 0.01096 256.70)",
+          "oklch(37.86% 0.01096 256.70)",
+          "oklch(49.29% 0.01096 256.70)",
+          "oklch(60.71% 0.01096 256.70)",
+          "oklch(72.14% 0.01096 256.70)",
+          "oklch(83.57% 0.01096 256.70)",
+          "oklch(95.00% 0.01096 256.70)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.00287 264.54)",
+          "oklch(26.43% 0.00287 264.54)",
+          "oklch(37.86% 0.00287 264.54)",
+          "oklch(49.29% 0.00287 264.54)",
+          "oklch(60.71% 0.00287 264.54)",
+          "oklch(72.14% 0.00287 264.54)",
+          "oklch(83.57% 0.00287 264.54)",
+          "oklch(95.00% 0.00287 264.54)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "blue": {
+        "role": "secondary",
+        "displayName": "Grade Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.14667 254.05)",
+          "oklch(26.43% 0.14667 254.05)",
+          "oklch(37.86% 0.14667 254.05)",
+          "oklch(49.29% 0.14667 254.05)",
+          "oklch(60.71% 0.14667 254.05)",
+          "oklch(72.14% 0.14667 254.05)",
+          "oklch(83.57% 0.14667 254.05)",
+          "oklch(95.00% 0.14667 254.05)"
+        ]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Grade Green",
+        "tonalRamp": [
+          "oklch(15.00% 0.10524 150.15)",
+          "oklch(26.43% 0.10524 150.15)",
+          "oklch(37.86% 0.10524 150.15)",
+          "oklch(49.29% 0.10524 150.15)",
+          "oklch(60.71% 0.10524 150.15)",
+          "oklch(72.14% 0.10524 150.15)",
+          "oklch(83.57% 0.10524 150.15)",
+          "oklch(95.00% 0.10524 150.15)"
+        ]
+      },
+      "orange": {
+        "role": "secondary",
+        "displayName": "Grade Orange",
+        "tonalRamp": [
+          "oklch(15.00% 0.14448 48.94)",
+          "oklch(26.43% 0.14448 48.94)",
+          "oklch(37.86% 0.14448 48.94)",
+          "oklch(49.29% 0.14448 48.94)",
+          "oklch(60.71% 0.14448 48.94)",
+          "oklch(72.14% 0.14448 48.94)",
+          "oklch(83.57% 0.14448 48.94)",
+          "oklch(95.00% 0.14448 48.94)"
+        ]
+      },
+      "neutral": {
+        "role": "neutral",
+        "displayName": "Pending Gray",
+        "tonalRamp": [
+          "oklch(15.00% 0.02194 255.61)",
+          "oklch(26.43% 0.02194 255.61)",
+          "oklch(37.86% 0.02194 255.61)",
+          "oklch(49.29% 0.02194 255.61)",
+          "oklch(60.71% 0.02194 255.61)",
+          "oklch(72.14% 0.02194 255.61)",
+          "oklch(83.57% 0.02194 255.61)",
+          "oklch(95.00% 0.02194 255.61)"
+        ]
+      },
+      "focus": {
+        "role": "secondary",
+        "displayName": "Focus Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.18809 260.16)",
+          "oklch(26.43% 0.18809 260.16)",
+          "oklch(37.86% 0.18809 260.16)",
+          "oklch(49.29% 0.18809 260.16)",
+          "oklch(60.71% 0.18809 260.16)",
+          "oklch(72.14% 0.18809 260.16)",
+          "oklch(83.57% 0.18809 260.16)",
+          "oklch(95.00% 0.18809 260.16)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Discovery display",
+        "purpose": "Main discovery heading with explicit responsive overrides."
+      },
+      "headline": {
+        "displayName": "Restaurant headline",
+        "purpose": "Selected restaurant identity."
+      },
+      "title": {
+        "displayName": "Catalog title",
+        "purpose": "Compact restaurant names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Global text foundation."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "Primary action labels."
+      },
+      "grade": {
+        "displayName": "Health-grade letter",
+        "purpose": "Placard-like letters separate from customer stars."
+      }
+    },
+    "shadows": [
+      {
+        "name": "search-focus-ring",
+        "value": "0 0 0 1px var(--focus)",
+        "purpose": "Focused search field boundary; not ambient elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Detail reveal."
+      },
+      {
+        "name": "detail-in",
+        "value": "300ms clip-path and opacity",
+        "purpose": "Reveal an expanded restaurant panel."
+      },
+      {
+        "name": "state-transition",
+        "value": "150ms",
+        "purpose": "Background, border, and loading-opacity changes."
+      },
+      {
+        "name": "loading-spin",
+        "value": "1s linear infinite",
+        "purpose": "Pending work indicator."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation:none; transition:none; scroll-behavior:auto",
+        "purpose": "Applied by prefers-reduced-motion:reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-catalog",
+        "value": "min-width:1500px"
+      },
+      {
+        "name": "compact-desktop",
+        "value": "max-width:1270px"
+      },
+      {
+        "name": "two-column",
+        "value": "max-width:1119px"
+      },
+      {
+        "name": "one-column",
+        "value": "max-width:719px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Navy pill for starting review collection or a primary recovery action.",
+      "html": "<button class=\"ds-primary\">Read reviews <svg aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:15px;background:var(--ink,#101d39);color:var(--white,#fff);font:600 14px Barlow,Arial,sans-serif;border:0;border-radius:24px;padding:13px 20px;min-height:44px;cursor:pointer;transition:background .15s}.ds-primary:hover{background:#28466d}.ds-primary:focus-visible{outline:3px solid var(--focus,#145bcc);outline-offset:3px}.ds-primary:disabled{opacity:.45;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}}"
+    },
+    {
+      "name": "Text action",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Underlined action for refreshing or inspecting supporting evidence.",
+      "html": "<button class=\"ds-text\">Refresh reviews</button>",
+      "css": ".ds-text{display:inline-flex;align-items:center;gap:6px;font:500 12px Barlow,Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;padding:4px 0;min-height:30px;color:var(--ink,#101d39);border:0;background:transparent;cursor:pointer}.ds-text:hover{color:var(--ink,#101d39)}.ds-text:focus-visible{outline:3px solid var(--focus,#145bcc);outline-offset:3px}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "White search field with a leading search icon and a focus ring.",
+      "html": "<label class=\"ds-search\"><svg aria-hidden=\"true\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input aria-label=\"Restaurant name, street, or ZIP code\" placeholder=\"Restaurant name, street, or ZIP code\"/></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:12px;background:var(--white,#fff);border:1px solid #cdd5e0;border-radius:8px;height:54px;padding:0 16px;color:#334868;max-width:430px}.ds-search:focus-within{border-color:var(--focus,#145bcc);box-shadow:0 0 0 1px var(--focus,#145bcc)}.ds-search input{font:400 15px Barlow,Arial,sans-serif;color:var(--ink,#101d39);border:0;outline:0;background:transparent;width:100%;min-width:0}.ds-search input::placeholder{color:#66758b;opacity:1}.ds-search svg{flex-shrink:0}"
+    },
+    {
+      "name": "Main navigation",
+      "kind": "nav",
+      "description": "Underlined active navigation on the yellow masthead.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main navigation\"><button class=\"ds-nav-active\" aria-pressed=\"true\">Explore</button><button aria-pressed=\"false\">Saved</button></nav>",
+      "css": ".ds-nav{display:flex;gap:26px;align-items:center;background:var(--yellow,#ffdc3d);padding:16px 24px}.ds-nav button{position:relative;color:var(--ink,#101d39);font:600 16px Barlow,Arial,sans-serif;border:0;background:transparent;padding:8px 0;min-height:44px;cursor:pointer}.ds-nav .ds-nav-active:after{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--ink,#101d39);content:\"\"}.ds-nav button:hover{color:var(--ink,#101d39)}.ds-nav button:focus-visible{outline:3px solid var(--focus,#145bcc);outline-offset:3px}"
+    },
+    {
+      "name": "Review platform selectors",
+      "kind": "chip",
+      "refersTo": "platform-selected",
+      "description": "Yellow marks the selected review platform.",
+      "html": "<div class=\"ds-platforms\" aria-label=\"Review platform\"><button class=\"ds-platform-active\" aria-pressed=\"true\">All platforms</button><button aria-pressed=\"false\">Google</button><button aria-pressed=\"false\">Yelp</button></div>",
+      "css": ".ds-platforms{display:flex;gap:6px;overflow:auto;border-bottom:1px solid var(--line,#dce1e8);padding-bottom:10px}.ds-platforms button{display:flex;align-items:center;justify-content:center;white-space:nowrap;min-height:34px;padding:8px 13px;border:0;border-radius:20px;background:transparent;color:var(--ink,#101d39);font:500 12px Barlow,Arial,sans-serif;cursor:pointer}.ds-platforms .ds-platform-active{background:var(--yellow,#ffdc3d);font-weight:600}.ds-platforms button:hover:not(.ds-platform-active){background:var(--background,#f7f8fa)}.ds-platforms button:focus-visible{outline:3px solid var(--focus,#145bcc);outline-offset:3px}"
+    },
+    {
+      "name": "Review summary surface",
+      "kind": "card",
+      "refersTo": "summary-card",
+      "description": "Cool-paper inset for a source-backed review summary.",
+      "html": "<div class=\"ds-summary\"><span class=\"ds-summary-label\">Review summary</span><p>Collected review summaries appear here with their supporting evidence.</p><div class=\"ds-summary-evidence\">Based on collected reviews. <a href=\"#review-evidence\">See the evidence</a></div></div>",
+      "css": ".ds-summary{padding:18px;background:var(--background,#f7f8fa);border-radius:8px;color:var(--ink,#101d39);font-family:Barlow,Arial,sans-serif;max-width:520px}.ds-summary-label{font-size:10px;font-weight:600;color:#456448}.ds-summary p{font-size:15px;line-height:1.65;margin:10px 0 0}.ds-summary-evidence{font-size:10px;line-height:1.6;color:var(--muted,#59667b);margin-top:18px}.ds-summary a{color:inherit;text-underline-offset:3px}.ds-summary a:focus-visible{outline:3px solid var(--focus,#145bcc);outline-offset:3px}"
+    },
+    {
+      "name": "Health-grade placards",
+      "kind": "custom",
+      "refersTo": "grade-card",
+      "description": "Official color associations with a letter and explicit health-grade label.",
+      "html": "<div class=\"ds-grades\"><span class=\"ds-grade ds-a\" aria-label=\"Grade A, zero to thirteen violation points\"><span class=\"ds-grade-letter\">A</span><span class=\"ds-grade-caption\">Health grade</span></span><span class=\"ds-grade ds-b\" aria-label=\"Grade B, fourteen to twenty-seven violation points\"><span class=\"ds-grade-letter\">B</span><span class=\"ds-grade-caption\">Health grade</span></span><span class=\"ds-grade ds-c\" aria-label=\"Grade C, twenty-eight or more violation points\"><span class=\"ds-grade-letter\">C</span><span class=\"ds-grade-caption\">Health grade</span></span></div>",
+      "css": ".ds-grades{display:flex;gap:12px}.ds-grade{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid currentColor;border-radius:4px;min-width:72px;min-height:88px;background:var(--white,#fff);padding:3px 7px 5px}.ds-a{color:var(--blue,#1764b5)}.ds-b{color:var(--green,#327745)}.ds-c{color:var(--orange,#bb5a18)}.ds-grade-letter{font-family:Arial,sans-serif;font-weight:800;font-size:65px;line-height:1.03;letter-spacing:-.03em}.ds-grade-caption{font-family:Barlow,Arial,sans-serif;font-size:9px;font-weight:600;line-height:1.2;white-space:nowrap}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Yellow City Catalog",
+    "overview": "Public Palate presents New York restaurants as a compact, photographic catalog. Taxi yellow anchors the navigation; navy Barlow lettering gives names and headings a direct, civic character. White entries sit on a cool, pale background. This is the user's approved second concept, captured in `.impeccable/mocks/city-catalog.png`.\n\nThe interface puts restaurant identity, an official health grade, and inspection dates together. Review analysis uses separate platform and star filters, with sources and collection status close at hand. Illustrative food photography supplies appetite and texture without implying that it depicts a particular restaurant.",
+    "keyCharacteristics": [
+      "Yellow navigation and navy typography.",
+      "Compact photographic entries with distinct health-grade placards.",
+      "Restaurant details expand within the catalog.",
+      "Review summaries retain their sample and source context."
+    ],
+    "rules": [
+      {
+        "name": "The Official Grade Rule",
+        "body": "A is blue, B is green, and C is orange. Pending and ungraded records use gray and explicit words. Keep the letter and health-grade label visible; color alone does not convey the grade.",
+        "section": "colors"
+      },
+      {
+        "name": "The Separate Ratings Rule",
+        "body": "Health grades and customer stars are different facts. Present them with different shapes, labels, and context.",
+        "section": "colors"
+      },
+      {
+        "name": "The Name First Rule",
+        "body": "Within an entry, the restaurant name leads, followed by cuisine and location; grade and date remain directly associated with that restaurant.",
+        "section": "typography"
+      },
+      {
+        "name": "The Border Before Shadow Rule",
+        "body": "Use borders and surface color to distinguish catalog entries, expanded details, and control states.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** preserve blue A, green B, orange C, and gray pending/ungraded states.",
+      "**Do** distinguish health grades from review stars through labels and visual form.",
+      "**Do** label stock food images as illustrative.",
+      "**Do** retain grade dates, review-sample qualifiers, and source links near their associated content.",
+      "**Do** use the shared Barlow family, surface borders, and yellow selection states.",
+      "**Do** preserve keyboard focus and reduced-motion behavior."
+    ],
+    "donts": [
+      "**Don't** use a generic green-good/red-bad scale for NYC letter grades.",
+      "**Don't** depict illustrative photos as restaurant-specific evidence.",
+      "**Don't** show fabricated customer reviews, star ratings, or collection success.",
+      "**Don't** treat the current smallest captions as a target for future reading text."
+    ]
+  }
+}
