@@ -44,3 +44,14 @@ test('requires numeric name identifiers to match even at the same address',()=>{
   assert.equal(matchesRestaurant(expected,'No 1 Favor Taste 2','732 61st Street','11220'),false);
   assert.equal(matchesRestaurant({...expected,name:'Favor Taste'},'Favor Taste 2','732 61st Street','11220'),false);
 });
+
+test('allows an omitted marked store suffix while rejecting conflicting store identifiers',()=>{
+  const expected={...restaurant,name:'Starbucks #20679',address:'1542 3 Avenue',zip:'10028'};
+  assert.equal(matchesRestaurant(expected,'Starbucks','1542 3 Ave','10028'),true);
+  assert.equal(matchesRestaurant(expected,'Starbucks Store #20679','1542 3 Ave','10028'),true);
+  assert.equal(matchesRestaurant(expected,'Starbucks #20680','1542 3 Ave','10028'),false);
+  assert.equal(matchesRestaurant(expected,'Starbucks','1543 3 Ave','10028'),false);
+  assert.equal(matchesRestaurant(expected,'Starbucks','1542 3 Ave','10029'),false);
+  assert.equal(matchesRestaurant({...expected,name:'Chipotle Mexican Grill # 3265'},'Chipotle Mexican Grill',expected.address,expected.zip),true);
+  assert.equal(matchesRestaurant({...expected,name:'No.1 Favor Taste Restaurant'},'No 2 Favor Taste Inc.',expected.address,expected.zip),false);
+});
