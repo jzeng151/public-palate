@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { collectDiningReviews, openTableSource, tripadvisorSource } from '../lib/dining-reviews.ts';
 import { analysisSchema, isPlatformUrl, validateAnalysis, type PipelineEvent } from '../lib/review-model.ts';
 import type { Restaurant } from '../lib/restaurant-data.ts';
+import { collectPlatform } from '../lib/review-pipeline.ts';
 
 // Synthetic fixtures mirror records verified in live Nimble captures. No real review text.
 const restaurant:Restaurant={id:'fixture',name:'Test Kitchen Restaurant',address:'234 West 44 Street',zip:'10036',borough:'Manhattan',cuisine:'American',grade:'A',gradeDate:null,inspectionDate:null,recordDate:null};
@@ -146,3 +147,44 @@ test('neither dining provider confirms a location without the catalog ZIP',()=>{
   assert.throws(()=>tripadvisorSource(expected,taUrl,taPage()),/matching restaurant/);
   assert.throws(()=>openTableSource(expected,otUrl,otPage()),/matching restaurant/);
 });
+
+for(const platform of ['Tripadvisor','OpenTable'] as const){
+  const correctUrl=platform==='Tripadvisor'?taUrl:otUrl;
+  const wrongUrl=correctUrl.replace(platform==='Tripadvisor'?'d12345':'1703',platform==='Tripadvisor'?'d98765':'9999');
+  const page=(wrong:boolean,identityWrong=wrong)=>platform==='Tripadvisor'?taPage({street:wrong?'999 Other Street':undefined}).replaceAll('d12345',identityWrong?'d98765':'d12345'):otPage({street:wrong?'999 Other Street':undefined}).replaceAll('1703',identityWrong?'9999':'1703');
+
+  test(`${platform} tries the next distinct candidate after rejecting a wrong branch`,async t=>{
+    const extracted:string[]=[];
+    t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+      const body=JSON.parse(String(init?.body));
+      if(String(input).endsWith('/search'))return Response.json({results:[
+        {url:'https://example.com/wrong',title:restaurant.name,description:restaurant.address},
+        {url:wrongUrl,title:restaurant.name,description:`${restaurant.address} ${restaurant.zip}`},
+        {url:`${wrongUrl}?tracking=duplicate`,title:restaurant.name,description:`${restaurant.address} ${restaurant.zip}`},
+        {url:correctUrl,title:restaurant.name,description:''}
+      ]});
+      assert.ok(String(input).endsWith('/extract'));
+      extracted.push(body.url);
+      return Response.json({status:'success',data:{html:page(body.url===wrongUrl)}});
+    });
+    const result=await collectPlatform(restaurant,platform,()=>{},new AbortController().signal);
+    assert.equal(result.status,'collected');assert.equal(result.url,correctUrl);
+    assert.equal(result.structured!.reviews.length,1);
+    assert.deepEqual(extracted,[wrongUrl,correctUrl]);
+  });
+
+  test(`${platform} stops after candidate exhaustion and does not retry quota errors on another listing`,async t=>{
+    let calls=0,quota=false;
+    t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+      if(String(input).endsWith('/search'))return Response.json({results:[wrongUrl,correctUrl].map(url=>({url,title:restaurant.name,description:''}))});
+      calls++;
+      return quota?Response.json({error:'Synthetic quota failure'},{status:429}):Response.json({status:'success',data:{html:page(true,JSON.parse(String(init?.body)).url===wrongUrl)}});
+    });
+    const signal=new AbortController().signal;
+    const exhausted=await collectPlatform(restaurant,platform,()=>{},signal);
+    assert.equal(exhausted.status,'unavailable');assert.equal(calls,2);assert.match(exhausted.error!,/matching restaurant/);
+    quota=true;calls=0;
+    const limited=await collectPlatform(restaurant,platform,()=>{},signal);
+    assert.equal(limited.status,'unavailable');assert.equal(calls,1);assert.match(limited.error!,/request limit/);
+  });
+}

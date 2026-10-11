@@ -16,6 +16,7 @@ function number(value:unknown,min:number,max:number,integer=false){
 }
 const zip=(value:unknown)=>string(value).match(/^\d{5}(?:-\d{4})?$/)?.[0].slice(0,5)||'';
 class ReviewsPending extends Error {}
+export class DiningLocationMismatch extends Error {}
 
 function source(platform:Analysis['platforms'][number],reviews:Review[]):SourcePage{
   if(!reviews.length)throw new ReviewsPending(`The ${platform.platform} listing matched, but no written reviews were available in the captured page. Check the listing directly or retry later.`);
@@ -55,7 +56,7 @@ export function openTableSource(restaurant:Restaurant,url:string,html:string):So
   const id=string(business.restaurantId),name=string(business.name),street=string(address.line1),postal=zip(address.postCode);
   const requestedId=new URL(url).pathname.match(/^\/restaurant\/profile\/(\d+)/)?.[1];
   if(!id||!name.trim()||!street.trim()||!string(address.postCode).trim())throw new ReviewsPending('OpenTable did not finish loading its restaurant and review records. Try refreshing reviews.');
-  if(!/^\d+$/.test(id)||(requestedId&&requestedId!==id)||!matchesRestaurant(restaurant,name,street,postal))throw new Error('OpenTable did not provide a matching restaurant name, street address, and ZIP. No reviews from an uncertain location were used.');
+  if(!/^\d+$/.test(id)||(requestedId&&requestedId!==id)||!matchesRestaurant(restaurant,name,street,postal))throw new DiningLocationMismatch('OpenTable did not provide a matching restaurant name, street address, and ZIP. No reviews from an uncertain location were used.');
   const statistics=object(object(business.statistics).reviews),ratings=object(statistics.ratings);
   const reviews:Review[]=[],seen=new Set<string>();
   for(const entry of array(object(object(profile.reviewsData).reviewSearchResults).reviews)){
@@ -109,7 +110,7 @@ export function tripadvisorSource(restaurant:Restaurant,url:string,html:string):
   if(!business)throw new ReviewsPending('Tripadvisor did not finish loading its restaurant records. Try refreshing reviews.');
   const address=object(business.address),name=string(business.name);
   const street=string(cleanAddress?.street1)||string(address.streetAddress),postal=zip(cleanAddress?.postalCode)||zip(address.postalCode);
-  if(!matchesRestaurant(restaurant,name,street,postal))throw new Error('Tripadvisor did not provide a matching restaurant name, street address, and ZIP. No reviews from an uncertain location were used.');
+  if(!matchesRestaurant(restaurant,name,street,postal))throw new DiningLocationMismatch('Tripadvisor did not provide a matching restaurant name, street address, and ZIP. No reviews from an uncertain location were used.');
   const reviews:Review[]=[],seen=new Set<string>();
   $('[data-automation="reviewCard"]').each((_,element)=>{
     const card=$(element),body=card.find('[data-test-target="review-body"]').clone();
