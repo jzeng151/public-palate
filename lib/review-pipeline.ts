@@ -1,7 +1,7 @@
 import type { Restaurant } from './restaurant-data';
 import { analysisJsonSchema, isPlatformUrl, platformDomains, platformNames, validateAnalysis, type PipelineEvent, type Platform, type ReviewReport, type SourcePage } from './review-model.ts';
 import { collectGoogleReviews } from './google-reviews.ts';
-import { collectGrubhubReviews, grubhubReviewUrl } from './grubhub-reviews.ts';
+import { collectGrubhubReviews, grubhubReviewUrl, plausibleGrubhubListing } from './grubhub-reviews.ts';
 import { collectYelpReviews } from './yelp-reviews.ts';
 
 type Notify=(event:PipelineEvent)=>void;
@@ -26,8 +26,16 @@ export async function collectPlatform(restaurant:Restaurant,platform:Platform,no
     },signal);
     const tokens=`${restaurant.name} ${restaurant.address} ${restaurant.zip}`.toLowerCase().match(/[a-z0-9]{3,}/g)||[];
     const score=(r:{title:string;description:string})=>tokens.reduce((s,t)=>s+(`${r.title} ${r.description}`.toLowerCase().includes(t)?1:0),0);
-    const candidate=(search.results||[]).filter(r=>isPlatformUrl(r.url,platform)).sort((a,b)=>score(b)-score(a))[0];
-    if(!candidate)throw new Error(`No public ${platform} restaurant page found.`);
+    let candidate:{url:string;title:string;description:string}|undefined=(search.results||[]).filter(r=>platform==='Grubhub'?plausibleGrubhubListing(restaurant,r):isPlatformUrl(r.url,platform)).sort((a,b)=>score(b)-score(a))[0];
+    if(!candidate&&platform==='Grubhub'){
+      notify({stage:'search',platform,status:'running',message:'Checking Grubhub with a precise name and location search'});
+      const fallback=await nimbleRequest<{results:{url:string;title:string;description:string}[]}>('/search',{
+        query:`site:grubhub.com/restaurant/ "${restaurant.name.replaceAll('"','')}"`,
+        include_domains:platformDomains.Grubhub,max_results:10,search_depth:'lite',country:'US'
+      },signal);
+      candidate=(fallback.results||[]).find(row=>plausibleGrubhubListing(restaurant,row));
+    }
+    if(!candidate)throw new Error(platform==='Grubhub'?'No matching Grubhub listing was found for this restaurant and address. It may not be listed on Grubhub.':`No public ${platform} restaurant page found.`);
     const listingUrl=new URL(candidate.url);
     listingUrl.search='';listingUrl.hash='';
     url=platform==='Grubhub'?grubhubReviewUrl(listingUrl.href):listingUrl.href;
