@@ -235,4 +235,16 @@ for(const platform of ['Tripadvisor','OpenTable'] as const){
     const limited=await collectPlatform(restaurant,platform,()=>{},signal);
     assert.equal(limited.status,'unavailable');assert.equal(calls,1);assert.match(limited.error!,/request limit/);
   });
+
+  for(const status of [404,410])test(`${platform} skips a stale target returning ${status}`,async t=>{
+    const extracted:string[]=[];
+    t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+      const body=JSON.parse(String(init?.body));
+      if(String(input).endsWith('/search'))return Response.json({results:[wrongUrl,correctUrl].map(url=>({url,title:restaurant.name,description:''}))});
+      extracted.push(body.url);
+      return Response.json(body.url===wrongUrl?{status:'failed',status_code:status}:{status:'success',data:{html:page(false)}});
+    });
+    const result=await collectPlatform(restaurant,platform,()=>{},new AbortController().signal);
+    assert.equal(result.status,'collected');assert.equal(result.url,correctUrl);assert.deepEqual(extracted,[wrongUrl,correctUrl]);
+  });
 }

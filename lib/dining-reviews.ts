@@ -16,9 +16,10 @@ function number(value:unknown,min:number,max:number,integer=false){
 }
 const zip=(value:unknown)=>string(value).match(/^\d{5}(?:-\d{4})?$/)?.[0].slice(0,5)||'';
 class ReviewsPending extends Error {}
+class DiningListingGone extends Error {}
 export class DiningLocationMismatch extends Error {}
 export function isDiningCandidateFailure(error:unknown):error is Error{
-  return error instanceof DiningLocationMismatch||error instanceof ReviewsPending;
+  return error instanceof DiningLocationMismatch||error instanceof ReviewsPending||error instanceof DiningListingGone;
 }
 
 function source(platform:Analysis['platforms'][number],reviews:Review[]):SourcePage{
@@ -34,6 +35,7 @@ export async function collectDiningReviews(restaurant:Restaurant,platform:Dining
       const result=await request<{status:string;status_code?:number;data?:{html?:string}}>('/extract',{
         url,formats:['html'],driver:platform==='OpenTable'&&attempt===0?'auto':'vx10',country:'US',request_timeout:60000
       },signal,90000);
+      if(result.status_code===404||result.status_code===410)throw new DiningListingGone(`${platform} returned a missing or retired listing (HTTP ${result.status_code}).`);
       if(result.status!=='success'||(result.status_code&&result.status_code>=400))throw Object.assign(new Error(`${platform} did not return readable review content.`),{status:result.status_code});
       const captured=(platform==='Tripadvisor'?tripadvisorSource:openTableSource)(restaurant,url,result.data?.html||'');
       notify({stage:'extract',platform,status:'complete',message:`${captured.structured!.reviews.length} ${platform} reviews collected`});
