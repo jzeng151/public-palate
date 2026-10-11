@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { providerRatings } from '../lib/review-ratings.ts';
+import { providerRatings, ratingBand } from '../lib/review-ratings.ts';
 import type { Analysis, Platform } from '../lib/review-model.ts';
 
 function provider(platform:Platform,rating:number|null,totalReviews:number,match:Analysis['platforms'][number]['match']='confirmed'):Analysis['platforms'][number]{
@@ -17,4 +17,13 @@ test('excludes missing and unconfirmed ratings instead of counting them as zero'
   assert.deepEqual(result.providers.map(p=>p.rating),[4.5,null,null]);
   assert.equal(providerRatings([]).average,null);
   assert.equal(providerRatings([provider('Google',0,0)]).average,null);
+});
+
+test('score bands match displayed precision at the 3.0 and 4.0 boundaries',()=>{
+  assert.equal(ratingBand(2.9),'low');
+  assert.equal(ratingBand(3),'medium');
+  assert.equal(ratingBand(3.9),'medium');
+  assert.equal(ratingBand(3.96),'high');
+  assert.equal(ratingBand(4),'high');
+  assert.equal(ratingBand(5),'high');
 });
