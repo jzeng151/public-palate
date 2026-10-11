@@ -55,3 +55,11 @@ test('allows an omitted marked store suffix while rejecting conflicting store id
   assert.equal(matchesRestaurant({...expected,name:'Chipotle Mexican Grill # 3265'},'Chipotle Mexican Grill',expected.address,expected.zip),true);
   assert.equal(matchesRestaurant({...expected,name:'No.1 Favor Taste Restaurant'},'No 2 Favor Taste Inc.',expected.address,expected.zip),false);
 });
+
+test('does not match a shorter name to another colocated business with extra identifying words',()=>{
+  const expected={...restaurant,name:'Bisoux Restaurant',address:'Laguardia Airport',zip:'11369'};
+  assert.equal(matchesRestaurant(expected,'Bisoux Market, World Bean',expected.address,expected.zip),false);
+  assert.equal(matchesRestaurant(expected,'Bisoux Market',expected.address,expected.zip),false);
+  assert.equal(matchesRestaurant(expected,'Bisoux',expected.address,expected.zip),true);
+  assert.equal(matchesRestaurant(expected,'Bisoux Restaurant',expected.address,expected.zip),true);
+});

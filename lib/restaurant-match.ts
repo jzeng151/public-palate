@@ -27,7 +27,8 @@ export function matchesRestaurantName(expected:string,name:string){
   // A real name such as "The Restaurant" can consist entirely of descriptors.
   // In that case require the full normalized name, rather than a partial generic match.
   if(!tokens.length||!candidateTokens.length)return Boolean(normalizeName(expected))&&normalizeName(expected)===normalizeName(name);
-  return tokens.filter(word=>candidateTokens.includes(word)).length/tokens.length>=0.75;
+  return tokens.filter(word=>candidateTokens.includes(word)).length/tokens.length>=0.75&&
+    candidateTokens.filter(word=>tokens.includes(word)).length/candidateTokens.length>=0.75;
 }
 export function matchesRestaurant(restaurant:Restaurant,name:string,address:string,zip:string){
   const sameName=matchesRestaurantName(restaurant.name,name);
