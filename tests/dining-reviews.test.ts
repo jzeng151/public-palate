@@ -123,6 +123,34 @@ test('OpenTable ignores a directory ranked ahead of the restaurant listing',asyn
   assert.equal(result.status,'collected');assert.equal(result.url,otUrl);assert.deepEqual(extracted,[otUrl]);
 });
 
+test('OpenTable rejects private dining hubs and canonicalizes profile reserve results',async t=>{
+  assert.equal(isPlatformUrl('https://www.opentable.com/private-dining','OpenTable'),false);
+  const reserved=`${otUrl}/reserve?rid=1703`;
+  assert.equal(isPlatformUrl(reserved,'OpenTable'),true);
+  assert.equal(isPlatformUrl(`${otUrl}/arbitrary-suffix`,'OpenTable'),false);
+  const extracted:string[]=[];
+  t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+    const body=JSON.parse(String(init?.body));
+    if(String(input).endsWith('/search'))return Response.json({results:[{url:reserved,title:restaurant.name,description:restaurant.address}]});
+    extracted.push(body.url);return Response.json({status:'success',data:{html:otPage()}});
+  });
+  const result=await collectPlatform(restaurant,'OpenTable',()=>{},new AbortController().signal);
+  assert.equal(result.status,'collected');assert.equal(result.url,otUrl);assert.deepEqual(extracted,[otUrl]);
+});
+
+test('OpenTable advances past unrecognized pages that remain unreadable after the bounded retry',async t=>{
+  const unknownPage='https://www.opentable.com/dining-discovery';
+  const extracted:string[]=[];
+  t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+    const body=JSON.parse(String(init?.body));
+    if(String(input).endsWith('/search'))return Response.json({results:[{url:unknownPage,title:restaurant.name,description:restaurant.address},{url:otUrl,title:restaurant.name,description:''}]});
+    extracted.push(body.url);return Response.json({status:'success',data:{html:body.url===otUrl?otPage():'<html>Dining directory</html>'}});
+  });
+  const result=await collectPlatform(restaurant,'OpenTable',()=>{},new AbortController().signal);
+  assert.equal(result.status,'collected');assert.equal(result.url,otUrl);
+  assert.deepEqual(extracted,[unknownPage,unknownPage,otUrl]);
+});
+
 test('OpenTable retries a timeout with vx10 and retains only verified reviews',async()=>{
   const bodies:unknown[]=[],events:PipelineEvent[]=[];
   const request:Parameters<typeof collectDiningReviews>[3]=async <T>(_path:string,body:unknown)=>{

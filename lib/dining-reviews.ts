@@ -17,6 +17,9 @@ function number(value:unknown,min:number,max:number,integer=false){
 const zip=(value:unknown)=>string(value).match(/^\d{5}(?:-\d{4})?$/)?.[0].slice(0,5)||'';
 class ReviewsPending extends Error {}
 export class DiningLocationMismatch extends Error {}
+export function isDiningCandidateFailure(error:unknown):error is Error{
+  return error instanceof DiningLocationMismatch||error instanceof ReviewsPending;
+}
 
 function source(platform:Analysis['platforms'][number],reviews:Review[]):SourcePage{
   if(!reviews.length)throw new ReviewsPending(`The ${platform.platform} listing matched, but no written reviews were available in the captured page. Check the listing directly or retry later.`);

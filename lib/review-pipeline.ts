@@ -3,7 +3,7 @@ import { analysisJsonSchema, isPlatformUrl, platformDomains, platformNames, vali
 import { collectGoogleReviews } from './google-reviews.ts';
 import { collectGrubhubReviews, grubhubReviewUrl, plausibleGrubhubListing } from './grubhub-reviews.ts';
 import { collectYelpReviews } from './yelp-reviews.ts';
-import { collectDiningReviews, DiningLocationMismatch } from './dining-reviews.ts';
+import { collectDiningReviews, isDiningCandidateFailure } from './dining-reviews.ts';
 
 type Notify=(event:PipelineEvent)=>void;
 export async function nimbleRequest<T>(path:string,body:unknown|undefined,signal:AbortSignal,timeoutMs=90000):Promise<T>{
@@ -41,28 +41,30 @@ export async function collectPlatform(restaurant:Restaurant,platform:Platform,no
     }
     if(!candidate)throw new Error(platform==='Grubhub'?'No matching Grubhub listing was found for this restaurant and address. It may not be listed on Grubhub.':`No public ${platform} restaurant page found.`);
     const attempted=new Set<string>();
-    let mismatch:DiningLocationMismatch|undefined;
+    let candidateFailure:Error|undefined;
     for(const listing of dining?candidates.slice(0,5):[candidate]){
       const listingUrl=new URL(listing.url);
       listingUrl.search='';listingUrl.hash='';
+      if(platform==='OpenTable')listingUrl.pathname=listingUrl.pathname.replace(/^(\/restaurant\/profile\/\d+)\/reserve\/?$/i,'$1');
       url=platform==='Grubhub'?grubhubReviewUrl(listingUrl.href):listingUrl.href;
       if(attempted.has(url))continue;
       attempted.add(url);
       notify({stage:'search',platform,status:'complete',message:`${platform} candidate found`});
       stage='extract';
-      notify({stage:'extract',platform,status:'running',message:attempted.size>1?`Checking another ${platform} listing after a location mismatch`:`Collecting visible ${platform} reviews`});
+      notify({stage:'extract',platform,status:'running',message:attempted.size>1?`Checking another ${platform} listing for this restaurant`:`Collecting visible ${platform} reviews`});
       try{
         if(platform==='Yelp')return await collectYelpReviews(restaurant,url,nimbleRequest,notify,signal);
         if(platform==='Tripadvisor'||platform==='OpenTable')return await collectDiningReviews(restaurant,platform,url,nimbleRequest,progress,signal);
         return await collectGrubhubReviews(restaurant,url,nimbleRequest,progress,signal);
       }catch(error){
-        // Only an actual location mismatch advances to another search candidate.
-        // Authentication, quota, cancellation, and exhausted extraction retries stop here.
-        if(signal.aborted||!dining||!(error instanceof DiningLocationMismatch))throw error;
-        mismatch=error;
+        // After the bounded page retry, an unreadable candidate may be a non-listing
+        // or an incomplete page. Try the next URL without relaxing identity checks.
+        // Authentication, quota, cancellation, timeouts, and server failures stop here.
+        if(signal.aborted||!dining||!isDiningCandidateFailure(error))throw error;
+        candidateFailure=error;
       }
     }
-    throw mismatch||new Error(`No matching ${platform} restaurant page found.`);
+    throw candidateFailure||new Error(`No matching ${platform} restaurant page found.`);
   }catch(error){
     if(signal.aborted)throw error;
     const message=error instanceof Error&&error.name==='TimeoutError'?`${platform} collection timed out while waiting for Nimble. Try refreshing reviews.`:error instanceof Error?error.message:'Collection failed. Try again.';
