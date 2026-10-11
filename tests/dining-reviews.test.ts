@@ -140,3 +140,9 @@ test('new provider summaries cite only reviews from the selected provider and st
   assert.equal(result.reviews.length,2);
   assert.deepEqual(result.summaries.map(item=>item.text),['Synthetic Tripadvisor summary','Synthetic OpenTable summary']);
 });
+
+test('neither dining provider confirms a location without the catalog ZIP',()=>{
+  const expected={...restaurant,zip:''};
+  assert.throws(()=>tripadvisorSource(expected,taUrl,taPage()),/matching restaurant/);
+  assert.throws(()=>openTableSource(expected,otUrl,otPage()),/matching restaurant/);
+});

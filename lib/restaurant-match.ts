@@ -19,6 +19,6 @@ export function matchesRestaurantName(expected:string,name:string){
 }
 export function matchesRestaurant(restaurant:Restaurant,name:string,address:string,zip:string){
   const sameName=matchesRestaurantName(restaurant.name,name);
-  const sameZip=!restaurant.zip||zip===restaurant.zip||new RegExp(`\\b${restaurant.zip}\\b`).test(address);
+  const sameZip=/^\d{5}$/.test(restaurant.zip)&&(zip===restaurant.zip||new RegExp(`\\b${restaurant.zip}\\b`).test(address));
   return sameName&&normalizeStreet(address)===normalizeStreet(restaurant.address)&&sameZip;
 }

@@ -30,3 +30,9 @@ test('normalizes numeric street ordinals and the restaurant descriptor without a
   assert.equal(matchesRestaurant(expected,"Sardi’s",'234 W 45th St','10036'),false);
   assert.equal(matchesRestaurant(expected,'Other Restaurant','234 W 44th St','10036'),false);
 });
+
+test('does not confirm a location when the catalog ZIP is missing',()=>{
+  const expected={...restaurant,zip:''};
+  assert.equal(matchesRestaurant(expected,restaurant.name,restaurant.address,'10001'),false);
+  assert.equal(matchesRestaurant(expected,restaurant.name,`${restaurant.address}, NY 10001`,'10001'),false);
+});
