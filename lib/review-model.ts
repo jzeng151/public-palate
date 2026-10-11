@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const platformNames = ['Google','Yelp','Grubhub'] as const;
+export const platformNames = ['Google','Yelp','Grubhub','Tripadvisor','OpenTable'] as const;
 export type Platform = typeof platformNames[number];
 export const reviewSchema = z.object({
   id:z.string().min(1), platform:z.enum(platformNames), rating:z.number().int().min(1).max(5).nullable(),
@@ -11,14 +11,14 @@ export const analysisSchema=z.object({
     platform:z.enum(platformNames), match:z.enum(['confirmed','uncertain','not_found']),
     matchedName:z.string(),matchedAddress:z.string(),sourceUrl:z.string(),
     rating:z.number().min(0).max(5).nullable(),totalReviews:z.number().int().nonnegative().nullable(),
-    note:z.string().max(1200)
+    note:z.string().max(1200),ratingBasis:z.enum(['recent','all_time']).optional()
   })),
   reviews:z.array(reviewSchema).max(150),
   summaries:z.array(z.object({
     platform:z.enum(['All',...platformNames]),stars:z.number().int().min(1).max(5).nullable(),
     text:z.string().max(2000),praise:z.array(z.string()).max(5),concerns:z.array(z.string()).max(5),
     evidenceIds:z.array(z.string())
-  })).max(24)
+  })).max((platformNames.length+1)*6)
 });
 export type Review= z.infer<typeof reviewSchema>;
 export type Analysis=z.infer<typeof analysisSchema>;
@@ -34,7 +34,14 @@ export const analysisJsonSchema={type:'object',properties:{
   summaries:{type:'array',items:{type:'object',properties:{platform:{type:'string',enum:['All',...platformNames]},stars:{type:['integer','null']},text:string,praise:{type:'array',items:string},concerns:{type:'array',items:string},evidenceIds:{type:'array',items:string}},required:['platform','stars','text','praise','concerns','evidenceIds']}}
 },required:['platforms','reviews','summaries']};
 
-export const platformDomains:Record<Platform,string[]>={Google:['google.com'],Yelp:['yelp.com'],Grubhub:['grubhub.com']};
+export const platformDomains:Record<Platform,string[]>={Google:['google.com'],Yelp:['yelp.com'],Grubhub:['grubhub.com'],Tripadvisor:['tripadvisor.com'],OpenTable:['opentable.com']};
+function isOpenTableListingPath(path:string){
+  if(/^\/(?:r\/[a-z0-9-]+|restaurant\/profile\/\d+(?:\/reserve)?)\/?$/i.test(path))return true;
+  // Legacy listings use a root slug, but city/category directories do too.
+  return /^\/[a-z0-9-]+\/?$/i.test(path)&&
+    !/^\/(?:start|s|r|home|metro|city|region|restaurants|about|login|signup|dining-rewards|private-dining)\/?$/i.test(path)&&
+    !/(?:\/|-)restaurants(?:-|\/?$)/i.test(path);
+}
 export function isPlatformUrl(raw:string,platform:Platform){
   try{
     const url=new URL(raw);
@@ -42,7 +49,9 @@ export function isPlatformUrl(raw:string,platform:Platform){
     return platformDomains[platform].some(d=>url.hostname===d||url.hostname.endsWith(`.${d}`)) &&
       (platform!=='Google'||url.pathname.startsWith('/maps')) &&
       (platform!=='Yelp'||url.pathname.startsWith('/biz/')) &&
-      (platform!=='Grubhub'||url.pathname.startsWith('/restaurant/'));
+      (platform!=='Grubhub'||url.pathname.startsWith('/restaurant/')) &&
+      (platform!=='Tripadvisor'||/^\/Restaurant_Review-g\d+-d\d+-Reviews[^/]*\.html$/.test(url.pathname)) &&
+      (platform!=='OpenTable'||isOpenTableListingPath(url.pathname));
   }catch{return false;}
 }
 export function validateAnalysis(input:unknown,sources:SourcePage[]):Analysis {

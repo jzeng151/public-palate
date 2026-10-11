@@ -28,10 +28,10 @@ Restart `npm run dev` after changing keys. Nimble is required for collection reg
 
 - Search, cuisine and borough filters, official health grade filters, pagination, sorting, and saved restaurants.
 - Restaurant details with the latest recorded grade and its date. Inspection history is fetched from NYC Open Data when a restaurant opens.
-- Google uses Nimble’s `google_maps_search` and `google_maps_reviews` templates to retrieve 20 reviews by matched Place ID. Yelp uses Nimble search, native extraction to match its business ID, and XHR extraction of its public review feed. Browser network capture provides a fallback. Grubhub waits for its JavaScript and preserves up to 30 written reviews and their star icons from the captured HTML. Each platform’s progress appears in the detail panel.
+- Google uses Nimble’s `google_maps_search` and `google_maps_reviews` templates to retrieve 20 reviews by matched Place ID. Yelp uses Nimble search, native extraction to match its business ID, and XHR extraction of its public review feed. Browser network capture provides a fallback. Grubhub waits for its JavaScript and preserves up to 30 written reviews and their star icons from the captured HTML. Tripadvisor and OpenTable use Nimble search and HTML extraction, preserving written reviews and explicit overall star ratings. Each platform’s progress appears in the detail panel.
 - Nimble Web Search Agents or Gemini extracts a review sample and produces summaries across platforms, by platform, and by star tier.
 - Platform and star filters, review excerpts with source links, a sample-only star distribution, refresh, and a downloadable JSON report.
-- Provider-wide average ratings for Google, Yelp, and Grubhub, plus an All platforms average that weights each available provider equally. Missing or unconfirmed ratings are excluded. Review filters do not change these overall ratings. Displayed scores use green for 4.0–5.0, amber for 3.0–3.9, and red below 3.0, with High/Medium/Low labels and a range legend. Provider errors stay visible after analysis and when reopening a report.
+- Provider-wide average ratings for Google, Yelp, Grubhub, Tripadvisor, and OpenTable, plus an All platforms average that weights each available provider equally. Missing or unconfirmed ratings are excluded. Review filters do not change these overall ratings. OpenTable labels recent versus all-time averages separately from its all-time written review count. Provider rating windows can differ. Displayed scores use green for 4.0–5.0, amber for 3.0–3.9, and red below 3.0, with High/Medium/Low labels and a range legend. Provider errors stay visible after analysis and when reopening a report.
 - Collection continues when switching restaurants, closing the detail panel, or viewing inspections. Returning restores progress or the completed report. Each restaurant retains its summary engine choice, and repeated starts share the active request. Use Stop to cancel a collection.
 - Explicit missing-key, collection failure, uncertain-location, and empty-sample states. No synthetic reviews are shown in the app.
 
@@ -80,6 +80,12 @@ Repeated Katz’s Grubhub requests exposed a catering-page search result. The fa
 
 Nimble standard search returned La Isla for Lilia and Monkey Thai Diner in New Jersey for Thai Diner. The new prefilter rejects these before extraction. For the same quoted Thai Diner query, `lite` search found the correct 186 Mott Street listing where `standard` missed it. Direct extraction using both default US traffic and US/New York traffic returned “Not available on Grubhub anymore” and no written reviews. Lilia had no matching listing in the tested searches. Country restrictions remain an upstream limitation; the bounded retry improves recovery without claiming universal access. React DOM tests verify errors remain visible after analysis completion and when reopening a cached report.
 
+Tripadvisor and OpenTable were verified through live Nimble requests before enabling them. Tripadvisor returned 15 written reviews for Lilia and 15 for Thai Diner. OpenTable returned 10 for Sardi's and 2 for Lilia. The production search-and-extraction collectors then retrieved 15 Thai Diner Tripadvisor reviews in 13.5 seconds and 10 Sardi's OpenTable reviews in 3.7 seconds. These are sampled run times, not guarantees.
+
+Tripadvisor uses the listing's JSON-LD identity, review cards, and overall bubble icons. When its street field includes a cross street, a structured street field is accepted only for the exact listing ID. OpenTable uses its embedded restaurant and review records; the JSON-LD individual rating can differ from the visible Overall score, so the collector uses each record's explicit `rating.overall`. Its automatic driver can time out; collection retries once with `vx10`. Both providers require matching name, street, and ZIP. They use generic Nimble extraction, not dedicated provider templates, and require no additional credentials.
+
+OpenTable availability and review recency vary. Lilia's two captured reviews date to 2019, and booking unavailability does not imply that historical reviews are unavailable. Sardi's 4.8 average was based on recent ratings, while its 6,695 written-review count was all-time. OpenTable reviews are not all reservation-verified. Collected dates, rating basis, missing sources, and original links remain visible. Tests cover these distinctions, wrong branches, bounded retries, provider filters, and summaries citing only the correct star tier.
+
 ## Project structure
 
 - `app/page.tsx`, `app/globals.css`: the approved yellow city catalog.
@@ -87,7 +93,7 @@ Nimble standard search returned La Isla for Lilia and Monkey Thai Diner in New J
 - `lib/review-collection.ts`: browser collection state and request ownership independent of mounted panels.
 - `components/provider-ratings.tsx`, `lib/review-ratings.ts`: provider-wide ratings and their equal-weight aggregate.
 - `lib/restaurant-data.ts`, `data/restaurants.json`: catalog consolidation and snapshot.
-- `lib/review-pipeline.ts`, `lib/google-reviews.ts`, `lib/yelp-reviews.ts`, `lib/grubhub-reviews.ts`, `lib/review-model.ts`: Nimble collection, model analysis, evidence validation.
+- `lib/review-pipeline.ts`, `lib/google-reviews.ts`, `lib/yelp-reviews.ts`, `lib/grubhub-reviews.ts`, `lib/dining-reviews.ts`, `lib/review-model.ts`: Nimble collection, model analysis, evidence validation.
 - `app/api/restaurants`, `app/api/reviews`: server-only APIs.
 - `PRODUCT.md`, `DESIGN.md`, `.impeccable/`: product context, design rules, and approved visual reference.
 

@@ -13,7 +13,7 @@ Find restaurants by NYC inspection letter grade and cuisine, then understand cus
 
 ## Capabilities and Constraints
 Use NYC DOHMH dataset 43nn-pn8j. Consolidate violation rows by CAMIS and preserve grade dates and inspection context. A health grade and customer star rating are separate facts.
-Use Nimble to discover and extract public restaurant review pages, including Google, Yelp, and Grubhub. Summarize across platforms, by platform, and by star tier using Nimble or Gemini.
+Use Nimble to discover and extract public restaurant review pages, including Google, Yelp, Grubhub, Tripadvisor, and OpenTable. Summarize across platforms, by platform, and by star tier using Nimble or Gemini.
 API credentials are configured locally in the ignored .env file. Missing credentials and unavailable reviews must be stated honestly; do not invent customer reviews or ratings.
 
 ## Evidence on Hand

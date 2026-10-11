@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Public Palate · Find your corner of New York",
-  description: "Explore NYC restaurants by cuisine and health grade. Compare customer reviews across Google, Yelp, and Grubhub with Nimble.",
+  description: "Explore NYC restaurants by cuisine and health grade. Compare customer reviews across Google, Yelp, Grubhub, Tripadvisor, and OpenTable with Nimble.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
