@@ -103,6 +103,26 @@ test('restaurant URL rules reject lookalike hosts, photo/forum pages and OpenTab
   for(const url of ['https://www.opentable.com/landmark/restaurants-near-test','https://www.opentable.com/r','https://www.opentable.com/s','https://www.opentable.com@evil.example/r/test'])assert.equal(isPlatformUrl(url,'OpenTable'),false);
 });
 
+test('rejects single-segment OpenTable restaurant directories while retaining legacy listings',()=>{
+  for(const path of ['/new-york-city-restaurants','/new-york-area-restaurants','/restaurants-near-me'])assert.equal(isPlatformUrl(`https://www.opentable.com${path}`,'OpenTable'),false);
+  for(const path of ['/sardis','/the-restaurant','/r/test-restaurant','/restaurant/profile/1703'])assert.equal(isPlatformUrl(`https://www.opentable.com${path}`,'OpenTable'),true);
+});
+
+test('OpenTable ignores a directory ranked ahead of the restaurant listing',async t=>{
+  const extracted:string[]=[];
+  t.mock.method(globalThis,'fetch',async(input:string|URL|Request,init?:RequestInit)=>{
+    const body=JSON.parse(String(init?.body));
+    if(String(input).endsWith('/search'))return Response.json({results:[
+      {url:'https://www.opentable.com/new-york-city-restaurants',title:restaurant.name,description:`${restaurant.address} ${restaurant.zip}`},
+      {url:otUrl,title:restaurant.name,description:''}
+    ]});
+    extracted.push(body.url);
+    return Response.json({status:'success',data:{html:body.url===otUrl?otPage():'<html>Restaurants in New York City</html>'}});
+  });
+  const result=await collectPlatform(restaurant,'OpenTable',()=>{},new AbortController().signal);
+  assert.equal(result.status,'collected');assert.equal(result.url,otUrl);assert.deepEqual(extracted,[otUrl]);
+});
+
 test('OpenTable retries a timeout with vx10 and retains only verified reviews',async()=>{
   const bodies:unknown[]=[],events:PipelineEvent[]=[];
   const request:Parameters<typeof collectDiningReviews>[3]=async <T>(_path:string,body:unknown)=>{

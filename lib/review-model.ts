@@ -35,6 +35,13 @@ export const analysisJsonSchema={type:'object',properties:{
 },required:['platforms','reviews','summaries']};
 
 export const platformDomains:Record<Platform,string[]>={Google:['google.com'],Yelp:['yelp.com'],Grubhub:['grubhub.com'],Tripadvisor:['tripadvisor.com'],OpenTable:['opentable.com']};
+function isOpenTableListingPath(path:string){
+  if(/^\/(?:r\/[a-z0-9-]+|restaurant\/profile\/\d+)\/?$/i.test(path))return true;
+  // Legacy listings use a root slug, but city/category directories do too.
+  return /^\/[a-z0-9-]+\/?$/i.test(path)&&
+    !/^\/(?:start|s|r|home|metro|city|region|restaurants|about|login|signup|dining-rewards)\/?$/i.test(path)&&
+    !/(?:\/|-)restaurants(?:-|\/?$)/i.test(path);
+}
 export function isPlatformUrl(raw:string,platform:Platform){
   try{
     const url=new URL(raw);
@@ -44,7 +51,7 @@ export function isPlatformUrl(raw:string,platform:Platform){
       (platform!=='Yelp'||url.pathname.startsWith('/biz/')) &&
       (platform!=='Grubhub'||url.pathname.startsWith('/restaurant/')) &&
       (platform!=='Tripadvisor'||/^\/Restaurant_Review-g\d+-d\d+-Reviews[^/]*\.html$/.test(url.pathname)) &&
-      (platform!=='OpenTable'||/^\/(?:r\/[a-z0-9-]+|restaurant\/profile\/\d+)\/?$/i.test(url.pathname)||(/^\/[a-z0-9-]+\/?$/i.test(url.pathname)&&!/^\/(?:start|s|r|home|metro|city|region|restaurants|about|login|signup|dining-rewards)\/?$/i.test(url.pathname)));
+      (platform!=='OpenTable'||isOpenTableListingPath(url.pathname));
   }catch{return false;}
 }
 export function validateAnalysis(input:unknown,sources:SourcePage[]):Analysis {
