@@ -12,14 +12,52 @@ export function formatDate(value:string|null|undefined){
   const date=new Date(value.slice(0,10)+'T12:00:00Z');
   return Number.isNaN(date.getTime())?'Not available':new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(date);
 }
-export function cuisinePhoto(cuisine:string){
-  const text=cuisine.toLowerCase();
-  if(/pizza/.test(text))return 'pizza';
-  if(/italian|pasta/.test(text))return 'pasta';
-  if(/japanese|sushi/.test(text))return 'sushi';
-  if(/chinese|thai|vietnamese|korean|asian|noodle/.test(text))return 'noodles';
-  if(/vegetarian|salad|mediterranean|vegan/.test(text))return 'salad';
-  if(/coffee|tea|bakery|donut|dessert|café|cafe/.test(text))return 'coffee';
-  if(/american|hamburger|sandwich/.test(text))return 'burger';
+export type CuisinePhoto = 'pizza' | 'pasta' | 'sushi' | 'noodles' | 'salad' | 'coffee' | 'burger' | 'grill';
+
+interface CuisinePhraseRule {
+  readonly photo: CuisinePhoto;
+  readonly phrases: readonly string[];
+}
+
+interface CuisineTokenRule {
+  readonly photo: CuisinePhoto;
+  readonly tokens: readonly string[];
+}
+
+const CUISINE_PHRASE_RULES: readonly CuisinePhraseRule[] = [
+  { photo: 'grill', phrases: ['latin american'] },
+];
+
+const CUISINE_TOKEN_RULES: readonly CuisineTokenRule[] = [
+  { photo: 'pizza', tokens: ['pizza', 'pizzas'] },
+  { photo: 'pasta', tokens: ['italian', 'pasta'] },
+  { photo: 'sushi', tokens: ['japanese', 'sushi'] },
+  { photo: 'noodles', tokens: ['chinese', 'thai', 'vietnamese', 'korean', 'asian', 'noodle', 'noodles'] },
+  { photo: 'salad', tokens: ['vegetarian', 'salad', 'salads', 'mediterranean', 'vegan'] },
+  { photo: 'coffee', tokens: ['coffee', 'tea', 'bakery', 'donut', 'donuts', 'dessert', 'desserts', 'café', 'cafés', 'cafe', 'cafes'] },
+  { photo: 'burger', tokens: ['american', 'hamburger', 'hamburgers', 'sandwich', 'sandwiches'] },
+];
+
+function normalizeCuisineTokens(cuisine: string): string[] {
+  return cuisine.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+
+export function cuisinePhoto(cuisine: string): CuisinePhoto {
+  const tokens = normalizeCuisineTokens(cuisine);
+  const paddedPhrase = ` ${tokens.join(' ')} `;
+
+  for (const rule of CUISINE_PHRASE_RULES) {
+    if (rule.phrases.some((phrase) => paddedPhrase.includes(` ${phrase} `))) {
+      return rule.photo;
+    }
+  }
+
+  const tokenSet = new Set(tokens);
+  for (const rule of CUISINE_TOKEN_RULES) {
+    if (rule.tokens.some((token) => tokenSet.has(token))) {
+      return rule.photo;
+    }
+  }
+
   return 'grill';
 }
